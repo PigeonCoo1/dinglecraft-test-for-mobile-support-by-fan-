@@ -33,6 +33,7 @@ function frame(t){
   requestAnimationFrame(frame);
   const dt=Math.min(0.05,Math.max(0,t-lastT)/1000||0.016)*GAMESPD;lastT=t;
   if(playing&&P){
+    touchTick(t);   /* the touch pad first (p06c): its context, hold-to-mine, Pocket Performance; a vehicle never sees a toggled SNEAK */
     if(!paused){
       if(GR.dayCycle)timeOfDay+=dt/DAY_LEN;
       drainLook();

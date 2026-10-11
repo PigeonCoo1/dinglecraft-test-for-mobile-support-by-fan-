@@ -220,19 +220,64 @@ select.mc-in{appearance:auto}
 .krow b{display:inline-block;min-width:150px;color:#202020}
 .range{width:100%;accent-color:#4f9a34;height:22px;margin:2px 0 6px}
 
-/* ---------- touch UI ---------- */
+/* ---------- touch UI (v7.0 The Pocket Update: src/ui/p06c_touch.js) ----------
+   body.touch shows the pad; body.tc-<context> (play ride modal inv terr cine chat cut, set by touchSync) picks which buttons show.
+   Sizes follow the screen (vmin) and stay clear of notches (safe-area insets). --tbot (set by touchLayout) lifts the pad above
+   the hotbar in portrait. */
+:root{--tb:clamp(46px,12.5vmin,80px);--tbs:clamp(36px,9vmin,52px);--tbot:12px;
+  --sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
 .touchui{display:none}
 body.touch .touchui{display:block}
-body.touch #cross{display:none}
-#joy{position:fixed;left:18px;bottom:96px;width:116px;height:116px;border-radius:50%;
-  background:rgba(255,255,255,.10);border:2px solid rgba(255,255,255,.35);z-index:8}
-#joynub{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;
-  background:rgba(255,255,255,.4)}
-.tbtn{position:fixed;width:64px;height:64px;border-radius:50%;z-index:8;border:2px solid rgba(255,255,255,.4);
-  background:rgba(255,255,255,.14);color:#fff;font:bold 12px 'Courier New',monospace;text-shadow:1px 1px 0 #000}
-.tbtn.on{background:rgba(120,220,120,.45)}
-#btnjump{right:22px;bottom:100px}
-#btnsneak{right:104px;bottom:78px}
-#btndrop{right:22px;bottom:184px;width:52px;height:52px}
-#btninv{right:88px;bottom:178px;width:52px;height:52px}
-#btnpause{right:14px;top:14px;width:46px;height:46px;border-radius:8px}
+body.touch{-webkit-touch-callout:none;overscroll-behavior:none}
+.tp{display:none!important}
+body.tc-play .tp-play,body.tc-ride .tp-ride,body.tc-modal .tp-modal,body.tc-inv .tp-inv,body.tc-terr .tp-terr,
+body.tc-cine .tp-cine,body.tc-chat .tp-chat,body.tc-cut .tp-cut{display:flex!important}
+#joyzone{position:fixed;left:0;bottom:0;width:46vw;height:78vh;z-index:4;display:none}
+body.tc-play #joyzone,body.tc-ride #joyzone,body.tc-terr #joyzone{display:block}
+#joy{position:fixed;left:calc(var(--sl) + 7vmin);bottom:calc(var(--sb) + var(--tbot) + 4vmin);width:clamp(96px,30vmin,150px);
+  height:clamp(96px,30vmin,150px);border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.3);
+  z-index:8;pointer-events:none;display:none;transition:opacity .2s;opacity:.55}
+body.tc-play #joy,body.tc-ride #joy,body.tc-terr #joy{display:block}
+#joy.act{opacity:1;transition:none}
+#joynub{position:absolute;left:50%;top:50%;width:42%;height:42%;transform:translate(-50%,-50%);border-radius:50%;
+  background:rgba(255,255,255,.42);border:2px solid rgba(255,255,255,.55)}
+#joy.spr #joynub{background:rgba(255,214,90,.7);border-color:#ffe9a8}
+.tbtn{width:var(--tb);height:var(--tb);border-radius:50%;border:2px solid rgba(255,255,255,.45);padding:0;margin:0;
+  background:rgba(20,20,26,.38);color:#fff;font:bold clamp(10px,2.6vmin,14px) 'Courier New',monospace;text-shadow:1px 1px 0 #000;
+  align-items:center;justify-content:center;touch-action:none;-webkit-user-select:none;user-select:none;pointer-events:auto}
+.tbtn.dn{background:rgba(255,255,255,.4)}
+.tbtn.on{background:rgba(110,210,110,.55);border-color:#c9ffc0}
+.tbig{width:calc(var(--tb)*1.18);height:calc(var(--tb)*1.18)}
+.tsq,.tsm{width:var(--tbs);height:var(--tbs);border-radius:10px;font-size:clamp(9px,2.2vmin,12px)}
+#tright{position:fixed;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + var(--tbot));z-index:8;display:grid;gap:8px;
+  grid-template-columns:repeat(3,var(--tb));grid-template-rows:repeat(2,var(--tb));align-items:center;justify-items:center;
+  grid-template-areas:"a b c" "d e f";pointer-events:none}
+#btnmine,#btnbuild,#btnc2{grid-area:b}#btnsprint,#btnhonk,#btncraft,#btnc3{grid-area:c}#btnitem,#btnc1{grid-area:a}
+#btnsneak{grid-area:d}#btnuse,#btnce{grid-area:e}#btnjump{grid-area:f}
+#tside{position:fixed;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + var(--tbot) + var(--tb)*2 + 22px);z-index:8;display:flex;gap:8px;
+  pointer-events:none}
+#ttop{position:fixed;right:calc(var(--sr) + 10px);top:calc(var(--st) + 10px);z-index:9;display:flex;flex-direction:row-reverse;gap:8px;pointer-events:none}
+#tmore{position:fixed;right:calc(var(--sr) + 10px);top:calc(var(--st) + var(--tbs) + 20px);z-index:9;display:none;
+  grid-template-columns:repeat(3,auto);gap:6px;pointer-events:none}
+body.touch #tmore.open{display:grid}
+body:not(.tc-play):not(.tc-ride) #tmore{display:none!important}
+.twide{width:auto;min-width:7.6em;height:var(--tbs);border-radius:10px;padding:0 10px;justify-content:flex-start;display:flex}
+#tinvbar{position:fixed;left:calc(var(--sl) + 10px);top:50%;transform:translateY(-50%);z-index:25;flex-direction:column;gap:8px;
+  align-items:center}
+.tlab{color:#fff;font:bold 11px 'Courier New',monospace;text-shadow:1px 1px 0 #000;opacity:.8}
+.tmod{width:auto;min-width:5.6em;height:var(--tbs);border-radius:10px;padding:0 10px;display:flex}
+body.tc-modal #ttop,body.tc-inv #ttop,body.tc-terr #ttop,body.tc-cine #ttop,body.tc-chat #ttop,body.tc-cut #ttop{z-index:60}
+#btnback{background:rgba(120,20,20,.55)}
+/* DEEP DIRT 2D and the cinema are overlays (z 20): their pad sits above them, and the stick zone shrinks to the stick's corner so
+   taps on the game canvas still reach it */
+body.tc-terr #tright,body.tc-cine #tright{z-index:30}
+body.tc-terr #joyzone{z-index:30;width:calc(var(--sl) + 46vmin);height:calc(var(--sb) + var(--tbot) + 44vmin)}
+body.tc-terr #joy{z-index:31}
+body.touch #terr .panel,body.touch #cine .panel{max-width:min(700px,calc(var(--tpw,700px) / var(--uiz)))!important}
+body.touch.tc-play #cross,body.touch.tc-ride #cross{display:block}
+body.touch #xp{bottom:auto;top:calc(var(--st) + var(--tbs) + 20px);right:calc(var(--sr) + 10px)}
+body.touch #armor{bottom:auto;top:calc(var(--st) + var(--tbs) + 44px);right:calc(var(--sr) + 10px)}
+@media (orientation:portrait){
+  #tinvbar{left:50%;top:auto;bottom:calc(var(--sb) + var(--tbot));transform:translateX(-50%);flex-direction:row}
+  #tside{right:auto;left:calc(var(--sl) + 12px);bottom:calc(var(--sb) + var(--tbot) + clamp(96px,30vmin,150px) + 8vmin)}
+}

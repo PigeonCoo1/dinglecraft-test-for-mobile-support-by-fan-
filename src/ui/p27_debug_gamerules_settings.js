@@ -140,7 +140,7 @@ function setRD(n,skipSave){
   if(!skipSave)saveSettings();
 }
 function saveSettings(){
-  try{storage.set('vox_settings',JSON.stringify({rd:RD,snd:soundOn?1:0,mus:musicOn?1:0,fb:fullbright?1:0,sh:SHD.on?1:0,plk:usePLock?1:0,tp:TP.id,tq:TP.q,ui:UIS.pref,fov:FOVB,ms:MSENS,sv:SFXVOL,mv:MUSVOL,pn:PNAME_SET?PNAME:undefined}));}catch(err){}
+  try{storage.set('vox_settings',JSON.stringify({rd:TCH.rdKeep||RD,snd:soundOn?1:0,mus:musicOn?1:0,fb:fullbright?1:0,sh:SHD.on?1:0,plk:usePLock?1:0,tp:TP.id,tq:TP.q,ui:UIS.pref,tc:TCH.pref,pf:TCH.pf,fov:FOVB,ms:MSENS,sv:SFXVOL,mv:MUSVOL,pn:PNAME_SET?PNAME:undefined}));}catch(err){}
 }
 async function loadSettings(){
   try{
@@ -161,6 +161,7 @@ async function loadSettings(){
       if(s.sv!==undefined)SFXVOL=clamp(+s.sv,0,1);
       if(s.mv!==undefined)MUSVOL=clamp(+s.mv,0,1);
       acVol();
+      if(s.tc!==undefined)touchSetPref(s.tc,true);if(s.pf!==undefined)touchSetPerfPref(s.pf,true);   /* touch controls (p06c) */
       uiSetPref(s.ui===undefined?'auto':s.ui,true);   /* UI scale (p06e); settings saved before Release 1.0 have none: Auto */
       if(!soundOn&&typeof tmusStop==='function')tmusStop();                        /* Sound: Off silences the menu music */
       if(PNAME_SET&&typeof TM!=='undefined'&&TM.view==='name')tmShow('main');     /* a returning player is never asked again */

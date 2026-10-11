@@ -9,6 +9,7 @@ function syncSetUI(){
   t('s_lock','Mouse Capture: '+(usePLock?'On':'Off'));
   tpSyncUI();
   uiSyncSetUI();
+  touchSyncSetUI();
   const rv=$('p_rdv');if(rv)rv.textContent=RD;
   const rr=$('p_rd');if(rr)rr.value=RD;
   const fv=$('s_fov');if(fv)fv.value=FOVB;const fl=$('s_fovv');if(fl)fl.textContent=FOVB;

@@ -21,6 +21,18 @@ A version appears once `npm run release` has recorded it in `tests/fixtures/ship
 
 <!-- generated from PATCH_LOG: do not edit below this line (up to the next manual block) -->
 
+## Release 1.1 — The Pocket Update
+
+*Game version 7.0, released 2026-10-11.*
+
+- DINGLECRAFT IN YOUR POCKET: phones and tablets get the whole game now, not a polite demo of it. Open the same one file in your phone’s browser and it plays. Landscape, portrait, tiny old phone, big tablet: everything fits, every menu shrinks until it does.
+- THE STICK: put your left thumb down anywhere on the left side and a move stick appears right under it. Push past the ring to sprint. Drag anywhere else to look around. Quick tap = place / use, press and hold = mine / attack, and the crosshair stays up so you can see exactly what you are about to ruin.
+- EVERY BUTTON THE KEYBOARD HAD: MINE and USE (hold USE to eat, draw a bow or aim a gun: eating on a phone used to be physically impossible, which was a bold diet), JUMP (double-tap to fly in creative, and it now actually stays on), SNEAK as a toggle (it turns into EXIT in a vehicle), RUN, HONK, INV, DROP, CHAT, CAM and pause.
+- THE ··· DRAWER: Superpowers, the player list, screenshots, replays, F3 and a Fullscreen button (it also tries to turn your phone sideways for you, politely).
+- EVERY SCREEN KNOWS YOU HAVE FINGERS: a red ✕ closes any menu, the inventory gets MOVE / SPLIT / QUICK tap modes and SORT (right-click and shift-click, for people without either), DEEP DIRT 2D gets its own stick, ITEM, BUILD and CRAFT, the cinema gets 1 2 3 and E, cutscenes get a skip, and the chat gets a SEND button that rides above your keyboard.
+- POCKET PERFORMANCE: on phones the resolution follows your frame rate (down when it struggles, back up when it is smooth), the first render distance is lighter, and a phone that is really sweating drops a chunk of view until it recovers. Your own render distance setting is never overwritten. Hyperreal keeps its own quality tiers (Auto picks Low on phones).
+- SETTINGS: Touch controls Auto / On / Off (Auto follows whatever you last touched, finger or mouse, so touch laptops just work), Pocket Performance Auto / On / Off, and the sensitivity slider now steers touch look too. No zooming the page by accident, no text-selection bubbles, no pull-to-refresh, and buttons stay clear of notches.
+
 ## Release 1.0 — Replays
 
 *Game version 6.9, released 2026-10-09.*

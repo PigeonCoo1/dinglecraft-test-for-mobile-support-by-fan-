@@ -14,7 +14,7 @@ function mkSlot(parent,getf,setf,kind){
   const s={get:getf,set:setf,kind:kind||'n',el:d,cv:d.firstChild};
   d.addEventListener('pointerdown',ev=>{
     ev.preventDefault();ev.stopPropagation();
-    slotClick(s,ev.button===2,ev.shiftKey);
+    slotClick(s,ev.button===2||(TCH.on&&TCH.mod==='split'),ev.shiftKey||(TCH.on&&TCH.mod==='quick'));   /* touch: the tap modes (p06c) */
     redrawModal();
   });
   d.addEventListener('contextmenu',ev=>ev.preventDefault());
