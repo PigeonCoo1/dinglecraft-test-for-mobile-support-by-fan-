@@ -8,6 +8,7 @@ css/ai_players.css
 css/purgatory.css
 css/creativity.css
 css/malgorath.css
+css/net.css
 01_body_open.html
 dom/hud.html
 dom/touch_cursor.html
@@ -18,5 +19,6 @@ dom/replay.html
 dom/panels_b.html
 dom/help.html
 dom/ext_panels.html
+dom/net.html
 dom/patch.html
 99_scripts.html

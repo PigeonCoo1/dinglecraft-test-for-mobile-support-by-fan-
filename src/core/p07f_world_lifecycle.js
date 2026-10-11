@@ -30,7 +30,7 @@ function startNewWorld(name,seedStr,mode,bots){
 }
 function enterGame(){
   playing=true;paused=false;
-  if(WORLD.name&&storageOK())setLastWorld(WORLD.name);
+  if(WORLD.name&&storageOK()&&!netClient())setLastWorld(WORLD.name);
   $('title').style.display='none';
   $('death').style.display='none';
   $('pause').style.display='none';
@@ -39,6 +39,7 @@ function enterGame(){
   tryLock();
 }
 async function quitToTitle(){
+  if(NET.on)netStop('quit');   /* multiplayer: close the room, or leave it */
   endDisaster(true);
   if(P&&P.dead)respawn();
   await saveToStorage(WORLD.name,true);

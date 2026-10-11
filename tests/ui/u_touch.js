@@ -48,7 +48,7 @@ boot.run(async()=>{
   ok('Controls: the Touch row names the stick, MINE / USE, the drawer and the inventory modes',/<b>Touch<\/b>[^<]*MINE \/ USE[^<]*SPLIT/.test(HH));
   {const loop=fs.readFileSync(boot.P.SRC.core+'p07h_boot_loop.js','utf8'),inp=SRC('p06b_input.js'),inv=SRC('p06d_modal_inventory.js'),
     dd=fs.readFileSync(boot.P.SRC.feat+'p35_deepdirt_help.js','utf8'),st=SRC('p27_debug_gamerules_settings.js'),tc=SRC('p06c_touch.js');
-    ok('the frame loop calls touchTick(t) first, before the player moves (a ride never sees a toggled SNEAK)',/if\(playing&&P\)\{\n\s*touchTick\(t\);[^\n]*\n\s*if\(!paused\)\{/.test(loop));
+    ok('the frame loop calls touchTick(t) first, before the player moves (a ride never sees a toggled SNEAK)',/if\(playing&&P\)\{\n\s*touchTick\(t\);[^\n]*\n(\s*netTick\(dt\);[^\n]*\n)?\s*if\(!paused(\|\|NET\.on)?\)\{/.test(loop));
     ok('touch play never asks for pointer lock (tryLock)',/function tryLock\(\)\{\n\s*if\(!usePLock\|\|TCH\.on\)return;/.test(inp));
     ok('inventory slots read the tap modes (SPLIT = right-click, QUICK = shift-click)',inv.includes("slotClick(s,ev.button===2||(TCH.on&&TCH.mod==='split'),ev.shiftKey||(TCH.on&&TCH.mod==='quick'))"));
     ok('DEEP DIRT 2D builds on a tap while BUILD is on',dd.includes('if(ev.button===2||TCH.build)TG.place=true;else TG.md=true;'));

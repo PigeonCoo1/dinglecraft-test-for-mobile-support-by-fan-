@@ -82,6 +82,12 @@ const PH3 = '{{THREE_JS}}', three = fs.readFileSync(path.join(ASSETS, 'vendor', 
 if (headText.split(PH3).length - 1 !== 1) problems.push(`head.html: ${PH3} must appear exactly once (html/99_scripts.html)`);
 if (/<\/script|<!--/i.test(three)) problems.push('assets/vendor/three.r128.min.js contains </script or <!-- and cannot be inlined');
 headText = headText.replace(PH3, () => three.replace(/\r/g, '').replace(/\n?$/, ''));
+/* v7.1: PeerJS 1.5.4 (assets/vendor/peerjs.1.5.4.min.js, MIT) is baked in for multiplayer (src/net); its source-map comment is
+   dropped (there is no map file next to the game) */
+const PHJ = '{{PEERJS}}', peerjs = fs.readFileSync(path.join(ASSETS, 'vendor', 'peerjs.1.5.4.min.js'), 'utf8');
+if (headText.split(PHJ).length - 1 !== 1) problems.push(`head.html: ${PHJ} must appear exactly once (html/99_scripts.html)`);
+if (/<\/script|<!--/i.test(peerjs)) problems.push('assets/vendor/peerjs.1.5.4.min.js contains </script or <!-- and cannot be inlined');
+headText = headText.replace(PHJ, () => peerjs.replace(/\r/g, '').replace(/\n\/\/# sourceMappingURL=\S+\s*$/, '').replace(/\n?$/, ''));
 /* Release 1.0: the title panorama (assets/title: 6 cube faces + pano.json), inlined as one JSON block */
 const PHP = '{{TITLE_PANO_JSON}}', PD = path.join(ASSETS, 'title'), pmeta = JSON.parse(fs.readFileSync(path.join(PD, 'pano.json'), 'utf8'));
 if (headText.split(PHP).length - 1 !== 1) problems.push(`head.html: ${PHP} must appear exactly once (html/dom/title.html)`);

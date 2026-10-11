@@ -85,6 +85,7 @@ function updateTNT(e,dt){
   if(e.fuse<=0){removeEnt(e);explode(e.x,e.y+0.5,e.z,3.2,false,e.owner);}
 }
 function explode(x,y,z,r,byMob,owner){
+  netFxOut('boom',x,y,z,r);   /* multiplayer: the others hear and see it (the blocks go as edits) */
   const pa=ACTOR,ph=HIT_BY,pw=HIT_HOW,pe=EXPL_BY;
   ACTOR=owner||null;HIT_BY=owner||(byMob?'Boomer':null);HIT_HOW='tnt';EXPL_BY=HIT_BY;
   try{explode0(x,y,z,r,byMob);}finally{ACTOR=pa;HIT_BY=ph;HIT_HOW=pw;EXPL_BY=pe;}

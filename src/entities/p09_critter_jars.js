@@ -71,7 +71,7 @@ function updateBall(e,dt){
     for(let s=0;s<2&&!e.st.mob;s++){
       const nx=e.x+e.vx*dt*(s+1)/2,ny=e.y+e.vy*dt*(s+1)/2,nz=e.z+e.vz*dt*(s+1)/2;
       for(const m of entities){
-        if(m.t!=='mob'||m.dead||m.bot)continue;
+        if(m.t!=='mob'||m.dead||m.bot||m.np||m.netp)continue;
         if(nx>m.x-m.hw-0.3&&nx<m.x+m.hw+0.3&&ny>m.y-0.25&&ny<m.y+m.h+0.3&&nz>m.z-m.hw-0.3&&nz<m.z+m.hw+0.3){
           ballCapture(e,m);break;
         }

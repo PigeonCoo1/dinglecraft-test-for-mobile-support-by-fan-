@@ -18,6 +18,22 @@ if(typeof window!=='undefined'&&!window.storage){
 function storageOK(){return typeof window!=='undefined'&&window.storage&&typeof window.storage.set==='function';}
 async function setLastWorld(n){try{await window.storage.set('vxwlast',n);}catch(e){}}
 async function getLastWorld(){try{const r=await window.storage.get('vxwlast');return r&&r.value;}catch(e){return null;}}
+/* the player part of a save (v7.1: its own function, so a multiplayer guest can send just this to the host) */
+function snapPlayer(){
+  return {x:+P.x.toFixed(2),y:+P.y.toFixed(2),z:+P.z.toFixed(2),
+    yaw:+P.yaw.toFixed(3),pitch:+P.pitch.toFixed(3),hp:P.hp,hunger:P.hunger,sel:P.sel,
+    spawn:P.spawn.map(v=>+v.toFixed(1)),
+    inv:P.inv.map(s=>s?{id:s.id,count:s.count,...(s.dur!=null?{dur:s.dur}:{}),...(s.mob?{mob:s.mob}:{}),...(s.ench?{ench:s.ench}:{})}:0),
+    stox:{bal:+(P.stox?P.stox.bal:0).toFixed(4),
+      sh:Object.fromEntries(Object.entries(P.stox?P.stox.sh:{}).filter(e=>e[1]>1e-9).map(e=>[e[0],+e[1].toFixed(6)])),
+      cb:Object.fromEntries(Object.entries((P.stox&&P.stox.cb)||{}).filter(e=>e[1]>1e-9).map(e=>[e[0],+e[1].toFixed(4)]))},
+    xp:Math.round(P.xp||0),
+    armor:(P.armor||[]).map(a=>a?{id:a.id,...(a.dur!=null?{dur:a.dur}:{})}:0),
+    db:Math.round(P.db||0),own:(P.own||[]).slice(),
+    cos:{hat:P.cos&&P.cos.hat||null,trail:P.cos&&P.cos.trail||null},
+    bp:P.bp?1:0,bpl:P.bpLvl|0,cmp:P.cmpT||0,pcmp:P.pcmpT||0,
+    pow:{u:{...(P.pow&&P.pow.u||{})},a:{...(P.pow&&P.pow.a||{})}}};
+}
 function snapshot(name){
   const edits={};
   for(const [k,ed] of chunkEdits){
@@ -33,7 +49,7 @@ function snapshot(name){
     if(e.dead)continue;
     if(e.t==='mob'&&MOBT[e.mt].pmob){mpSnapMob(e,ents);continue;}
     if(e.t==='mob'&&MOBT[e.mt].mg)continue;
-    if(e.t==='mob'&&!e.bot){
+    if(e.t==='mob'&&!e.bot&&!e.netp&&!e.np){
       const o={t:e.mt,x:+e.x.toFixed(2),y:+e.y.toFixed(2),z:+e.z.toFixed(2),hp:e.hp};
       if(e.mt==='alien'){o.nm=e.name;o.rel=Math.round(e.rel);o.rom=e.rom;
         o.md=e.mood==='h'?'h':'c';o.hx=Math.round(e.hx);o.hz=Math.round(e.hz);}
@@ -59,19 +75,7 @@ function snapshot(name){
     dim:DIM,
     snl:SNL_ON?1:0,
     nukes:NUKES.map(n=>[n.x,n.y,n.z,n.d==='nether'?1:(n.d==='aether'?2:(n.d==='puppet'?3:0))]),
-    player:{x:+P.x.toFixed(2),y:+P.y.toFixed(2),z:+P.z.toFixed(2),
-      yaw:+P.yaw.toFixed(3),pitch:+P.pitch.toFixed(3),hp:P.hp,hunger:P.hunger,sel:P.sel,
-      spawn:P.spawn.map(v=>+v.toFixed(1)),
-      inv:P.inv.map(s=>s?{id:s.id,count:s.count,...(s.dur!=null?{dur:s.dur}:{}),...(s.mob?{mob:s.mob}:{}),...(s.ench?{ench:s.ench}:{})}:0),
-      stox:{bal:+(P.stox?P.stox.bal:0).toFixed(4),
-        sh:Object.fromEntries(Object.entries(P.stox?P.stox.sh:{}).filter(e=>e[1]>1e-9).map(e=>[e[0],+e[1].toFixed(6)])),
-        cb:Object.fromEntries(Object.entries((P.stox&&P.stox.cb)||{}).filter(e=>e[1]>1e-9).map(e=>[e[0],+e[1].toFixed(4)]))},
-      xp:Math.round(P.xp||0),
-      armor:(P.armor||[]).map(a=>a?{id:a.id,...(a.dur!=null?{dur:a.dur}:{})}:0),
-      db:Math.round(P.db||0),own:(P.own||[]).slice(),
-      cos:{hat:P.cos&&P.cos.hat||null,trail:P.cos&&P.cos.trail||null},
-      bp:P.bp?1:0,bpl:P.bpLvl|0,cmp:P.cmpT||0,pcmp:P.pcmpT||0,
-      pow:{u:{...(P.pow&&P.pow.u||{})},a:{...(P.pow&&P.pow.a||{})}}},
+    player:snapPlayer(),
     market:{p:Object.fromEntries(STOX.map(s=>[s,+MKT.p[s].toFixed(3)])),
       mu:Object.fromEntries(STOX.map(s=>[s,+MKT.mu[s].toFixed(6)]))},
     vseen:[...VSEEN],
@@ -86,6 +90,7 @@ function snapshot(name){
     rseen:[...RSEEN],
     demon:{ay:DEMON.ay,cs:DEMON.cutSeen?1:0,dead:DEMON.dead?1:0},
     ...mgSaveFields(),
+    ...netSaveFields(),
     gr:{...GR},
     ...crSaveFields(),
     bots:agSnapshot(),
@@ -98,7 +103,7 @@ function resetWorld(){
   SNL=null;SNL_ON=false;
   NUKES.length=0;NARM.e=null;NARM.t=0;nukeHud(-1);
   for(const k2 in ENT_STASH)delete ENT_STASH[k2];
-  NCOLM.clear();ACOLM.clear();mpReset();
+  NCOLM.clear();ACOLM.clear();mpReset();netReset();
   closeModal(true);
   for(const ch of chunks.values())disposeChunkMeshes(ch);
   chunks.clear();chunkEdits.clear();blockEnts.clear();torches.clear();COLM.clear();
@@ -180,6 +185,7 @@ function applySave(d){
   INFKILL.clear();for(const v of (d.infkill||[]))INFKILL.add(v);
   VALKILL.clear();for(const v of (d.valkill||[]))VALKILL.add(v);
   mpLoad(d.mp,d.stash);
+  netLoad(d.net);   /* multiplayer: the guests this world remembers (PART 58) */
   ASEEN.clear();APEND.length=0;for(const v of (d.aseen||[]))ASEEN.add(v);
   PSEEN.clear();for(const v of (d.pseen||[]))PSEEN.add(v);
   WDSEEN.clear();for(const v of (d.wdseen||[]))WDSEEN.add(v);
@@ -249,6 +255,7 @@ function applySave(d){
 }
 async function saveToStorage(name,quiet){
   if(!playing)return false;
+  if(netClient()){if(!quiet)showToast('This world lives on the host: it saves there, with your things');return false;}
   const j=JSON.stringify(snapshot(name));
   if(j.length>4.5e6&&!quiet)showToast('World save is getting large ('+(j.length/1e6).toFixed(1)+' MB)');
   if(!storageOK()){if(!quiet)showToast('No save storage here — use Export instead');return false;}

@@ -43,6 +43,7 @@ Every other mesh in `WPN3D` was modelled for DINGLECRAFT and is covered by LICEN
 | Component | Licence | How it is used |
 |---|---|---|
 | [three.js](https://threejs.org) r128 | MIT, copyright 2010-2021 three.js authors (full text: [`assets/vendor/three.LICENSE`](assets/vendor/three.LICENSE)) | bundled verbatim as `assets/vendor/three.r128.min.js` (byte-identical to the official r128 `three.min.js`, its MIT header kept) and inlined into the built html, with the full licence text in a comment just before it, so the game needs no internet |
+| [PeerJS](https://peerjs.com) 1.5.4 | MIT, copyright 2015 Michelle Bu and Eric Zhang (full text: [`assets/vendor/peerjs.LICENSE`](assets/vendor/peerjs.LICENSE)) | bundled as `assets/vendor/peerjs.1.5.4.min.js`: the npm `peerjs@1.5.4` `dist/peerjs.min.js` with one change, two email addresses taken out (the `contributors` list its build copies in from package.json emptied, and the support address in one error message reworded: this repo never ships email addresses; the authors are credited in the licence) and inlined into the built html (its source-map comment dropped), with the licence text in a comment before it; multiplayer (`src/net/`) uses it to connect players. The free public PeerJS server only introduces players; the game traffic then goes directly between them |
 | three.js ACES filmic tone-mapping formula | MIT (three.js) | re-implemented in the Hyperreal composite pass (`src/texpacks/tB_post.js`) |
 
 The game itself has no npm dependencies.

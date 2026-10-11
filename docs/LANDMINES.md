@@ -86,6 +86,25 @@ Grep for names with `tools/grep-safe.sh`.
 - **Pocket Performance only drives the pixel ratio in OG.** Hyperreal owns it (its quality tiers); `TCH.rdKeep` holds the
   player's render distance while the automatic one is lower, and `saveSettings` saves that.
 
+## Multiplayer (PART 58, `src/net/`)
+
+- **The host is the truth.** A guest never saves the host's world (`saveToStorage` refuses) and never runs its own mobs
+  while it stands in the host's dimension (`netPuppetMobs`): anything it spawns there by itself is removed in `netTick`.
+  Puppet Purgatory and Malgorath are the exceptions: each player's own game runs them.
+- **Writes from the wire set `NET.applying`.** Anything that calls `setBlock` (or another hook that sends) while applying
+  a remote message must keep it set, or the edit bounces back and forth forever.
+- **Puppets and bodies are `t:'mob'` but not mobs.** Code that walks `entities` for mobs must skip `e.np` (a host mob
+  shown on a guest) and `e.netp` (a remote player), as it skips `e.bot`: never save them, count them, capture them or kill
+  them locally.
+- **The heartbeat runs on a timer, not on frames** (`netBeat`): a backgrounded or paused game stops drawing frames but
+  must still say it is there, or the host drops it.
+- **Names on the wire are never "Dan".** The game maps "Dan" to whoever is reading (`pnShow`); `netNameFix` renames.
+- **Same game version only.** A guest with another `GAME_VERSION` is turned away: saves and ids must match.
+- **The vendored PeerJS is not byte-identical to npm**: its contributor list and one support address are taken out (no
+  email addresses ship). Re-vendoring a new version means doing that again (`tests/net/n_link.js` checks).
+- **No real PeerJS in tests.** The node suite uses the memory transport, the browser rig BroadcastChannel; the public
+  matchmaker is only reached by real players.
+
 ## Texture packs (PART 54)
 
 - **OG must not change.** Every Hyperreal hook is guarded (`TP.hr`, `HRW.on`, `HRL.on`, `HRE.on`, `opts.hr`, `e.hrM`,

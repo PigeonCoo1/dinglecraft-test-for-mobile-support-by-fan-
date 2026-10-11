@@ -15,6 +15,7 @@ function torchNear(x,y,z){
   return false;
 }
 function mobsTick(dt){
+  if(netPuppetMobs())return;   /* a multiplayer guest in the host's dimension shows the host's mobs (PART 58) */
   spawnT-=dt;
   if(spawnT>0)return;
   spawnT=1.4;
@@ -79,6 +80,7 @@ function updateEntities(dt){
       removeEnt(e);
       continue;
     }
+    if(e.np||e.netp){netEntTick(e,dt);continue;}   /* multiplayer bodies and puppets (PART 58) */
     if(e.t==='drop')updateDrop(e,dt);
     else if(e.t==='fall')updateFall(e,dt);
     else if(e.t==='arrow')updateArrow(e,dt);

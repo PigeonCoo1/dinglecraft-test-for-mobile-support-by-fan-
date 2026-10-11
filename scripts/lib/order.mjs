@@ -37,7 +37,7 @@ export function validateOrder(dir, entries, exts, ignore = []) {
 }
 
 // Package files must start with their splice-era marker naming themselves (docs/BUILD.md, "marker lint").
-const MARKER_DIRS = { 'malgorath/hr': '57 HR', malgorath: '57', creativity: '56', purgatory: '55', texpacks: '54' };
+const MARKER_DIRS = { net: '58', 'malgorath/hr': '57 HR', malgorath: '57', creativity: '56', purgatory: '55', texpacks: '54' };
 
 /** Marker lint over the src ORDER entries. Returns problems (file names only). */
 export function markerLint(srcDir, entries) {
@@ -46,7 +46,7 @@ export function markerLint(srcDir, entries) {
   for (const e of entries) {
     const dir = path.posix.dirname(e), base = path.posix.basename(e);
     const nn = MARKER_DIRS[dir];
-    if (!nn || !/^[mcpt][0-9A-C]/.test(base)) continue;
+    if (!nn || !/^[mcptn][0-9A-C]/.test(base)) continue;
     const want = '/* ---- PART ' + nn + ': ' + base + ' ---- */\n';
     const fd = fs.openSync(path.join(srcDir, e), 'r');
     const buf = Buffer.alloc(Buffer.byteLength(want));

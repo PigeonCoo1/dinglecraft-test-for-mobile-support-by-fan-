@@ -152,7 +152,7 @@ function chatKey(e){
 function chatSubmit(raw){
   const t=(''+(raw||'')).replace(/[\u0000-\u001f]/g,' ').trim().slice(0,200);
   if(!t)return;
-  if(t[0]!=='/'){chatLine('Dan',t,null,false);agBrainNudge();return;}
+  if(t[0]!=='/'){chatLine('Dan',t,null,false);netChatOut(t);agBrainNudge();return;}
   const parts=t.slice(1).split(/\s+/);const cmd=(parts.shift()||'').toLowerCase();
   if(cmd==='msg'||cmd==='w'||cmd==='tell'||cmd==='whisper'){
     const to=parts.shift();const msg=parts.join(' ');
@@ -210,6 +210,7 @@ function renderTab(){
   const rows=[[PNAME,P.mode==='c'?'creative':Math.round(P.hp)+'❤','',0]];
   for(const a of AGENTS){if(!a.online)continue;
     rows.push([a.name,a.dead?'dead':Math.round(a.hp)+'❤',!BRAIN.ok?'autopilot':a.typing.length?'typing…':'▂▄▆█',a.dim!==DIM?(a.dim==='over'?'Overworld':a.dim==='puppet'?'Puppet Purgatory':a.dim):'']);}
+  for(const r of netTabRows())rows.push(r);   /* multiplayer (PART 58) */
   const s=JSON.stringify(rows);
   if(s===_tabLast)return;
   _tabLast=s;el.style.display='block';el.innerHTML='';

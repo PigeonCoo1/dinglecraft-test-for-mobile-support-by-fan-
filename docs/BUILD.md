@@ -63,6 +63,7 @@ and `npm run release` read it.
 |---|---|---|---:|---:|
 | PART 55 | the first `/* ---- PART 55: ` marker | `/* ---- PART 54: t0_contract.js ---- */` | 950,000 | 793,594 |
 | PART 56 | the first `/* ---- PART 56: ` | `/* ---- PART 55: p0_contract.js ---- */` (must be adjacent) | 450,000 | 139,146 |
+| PART 58 | the first `/* ---- PART 58: ` | `/* ---- PART 57: m0_contract.js ---- */` (must be adjacent) | 200,000 | (v7.1: 46,000) |
 | PART 57 | `/* ---- PART 57: m0_contract.js ---- */` | `/* ---- PART 56: c0_contract.js ---- */` (must be adjacent) | 600,000 | 433,458 |
 | PART 57 HR block | the first `/* ---- PART 57 HR: ` | the comment that opens the Hyperreal cast (must be adjacent) | 700,000 | 68,204 |
 | the html | | | 45,000,000 | 42,986,086 |

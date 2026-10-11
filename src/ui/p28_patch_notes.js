@@ -3,7 +3,15 @@
    frozen core suite keep working, but players never see it. PATCH_LOG still feeds CHANGELOG.md (scripts/changelog.mjs)
    and the release tooling. Data-driven off GAME_VERSION so it can't drift from the shipped build. */
 const PATCH_LOG=[
- {v:GAME_VERSION,label:RELEASE_LABEL,title:'The Pocket Update',lines:[
+ {v:GAME_VERSION,label:RELEASE_LABEL,title:'The Link Update',lines:[
+    'MULTIPLAYER: play one world with friends in other houses. Open your world (pause, 🌐 Multiplayer, Open to friends) and you get a five-letter room code; your friends open DINGLECRAFT, tap 🌐 Multiplayer on the title screen and type it. Phones, tablets and computers all play together, touch controls included. No accounts, no servers to set up, no money: the free public matchmaker introduces your devices, then the game talks to them directly.',
+    'EVERYBODY SEES EVERYBODY: other players walk around as real bodies with their name over their heads, holding what they hold, sneaking when they sneak. Every block anyone places or breaks shows up for everyone, in every dimension, chests and furnaces included. Chat works across the houses, and hold Tab to see who is here.',
+    'THE HOST’S WORLD IS THE WORLD: mobs, drops, day and night and the game rules come from the host, so a zombie chasing your friend is the same zombie on both screens. Hit it from your phone and it is hurt on the host’s screen; kill it and the XP flies to you. Walk over a drop and it is yours (first come, first served).',
+    'PVP: on by default, and the host can switch it off. Explosions hit whoever is standing there either way.',
+    'YOUR THINGS COME BACK: the host’s world remembers every friend who visited (inventory, health, where you stood). Leave, come back tomorrow with the same code and name, and your stuff is waiting. A guest’s game never saves the host’s world on its own device.',
+    'HONEST SMALL PRINT: vehicles, the casino, the store, DEEP DIRT 2D and the cinema are still yours alone (your friends see you sitting in thin air while you drive). Puppet Purgatory and Malgorath run on each player’s own game. Same version only: everybody needs this DINGLECRAFT, Release 1.1.',
+  ]},
+ {v:'7.0',label:'Release 1.1',title:'The Pocket Update',lines:[
     'DINGLECRAFT IN YOUR POCKET: phones and tablets get the whole game now, not a polite demo of it. Open the same one file in your phone’s browser and it plays. Landscape, portrait, tiny old phone, big tablet: everything fits, every menu shrinks until it does.',
     'THE STICK: put your left thumb down anywhere on the left side and a move stick appears right under it. Push past the ring to sprint. Drag anywhere else to look around. Quick tap = place / use, press and hold = mine / attack, and the crosshair stays up so you can see exactly what you are about to ruin.',
     'EVERY BUTTON THE KEYBOARD HAD: MINE and USE (hold USE to eat, draw a bow or aim a gun: eating on a phone used to be physically impossible, which was a bold diet), JUMP (double-tap to fly in creative, and it now actually stays on), SNEAK as a toggle (it turns into EXIT in a vehicle), RUN, HONK, INV, DROP, CHAT, CAM and pause.',

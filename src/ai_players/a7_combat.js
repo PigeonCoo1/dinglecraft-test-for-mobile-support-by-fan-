@@ -118,7 +118,7 @@ function agRegen(a,dt){
 }
 /* who hostile mobs go for: the nearest player, Dan or an agent */
 function mobBotTarget(e,T,pd){
-  if(!AG_ACTIVE)return null;
+  if(!AG_ACTIVE&&!NET.on)return null;
   const range=T.boss?26:(T.nuke?22:16);
   const pOK=P&&!P.dead&&(P.mode!=='c'||T.nuke);
   let best=null,bd=range;
@@ -127,11 +127,13 @@ function mobBotTarget(e,T,pd){
     const d=Math.hypot(b.x-e.x,b.z-e.z);
     if(d<bd){bd=d;best=b;}
   }
+  for(const b of netBodies()){if(b.NP&&b.NP.pose&&(b.NP.pose.dead||b.NP.pose.cr))continue;const d=Math.hypot(b.x-e.x,b.z-e.z);if(d<bd){bd=d;best=b;}}   /* remote players (PART 58) */
   if(!best)return null;
   if(pOK&&pd<=bd)return null;
   return best;
 }
 function mobHitBot(b,e,T,dmg,dx,dz){
+  if(b.netp){netDmgTo(b.NP,dmg,dx,dz,mobNameOf(e.mt),'mob');return;}
   agHurt(b.A,dmg,mobNameOf(e.mt),dx,dz,'mob');
 }
 /* fight a target until it dies or gets away (shared by attack/hunt/guard) */

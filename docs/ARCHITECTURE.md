@@ -44,7 +44,8 @@ The original game was written as numbered `PART`s, 1 to 52. Every big update sin
 ```
 src/core, world, entities, ui, features   PARTs 1-52    the original sandbox (v1.0 to v5.8), with every update's core hooks in place
 src/ai_players/                           PART 53       AI players (v5.9)
-src/malgorath/                            PART 57       the Malgorath Update (v6.3)        <- newest update
+src/net/                                  PART 58       the Link Update: multiplayer (v7.1) <- newest update
+src/malgorath/                            PART 57       the Malgorath Update (v6.3)
 src/creativity/                           PART 56       the Creativity Update (v6.2)
 src/purgatory/                            PART 55       Puppet Purgatory (v6.1, recast in Release 1.0)
 src/texpacks/t*.js                        PART 54       texture packs (v6.0)
@@ -128,6 +129,7 @@ Line ranges are where each piece sat in the shipped v6.3 `game.js`, handy when a
 | PART | update | src | v6.3 lines |
 |---|---|---|---|
 | 53 | AI players (v5.9) | `ai_players/a1_core.js` … `a9_ui.js` (core, world, nav, body, skills, build, combat, mind, UI) + `mob_helpers.js` | 12336-16352 |
+| 58 | the Link Update: multiplayer (v7.1) | `net/n0_contract.js` (state, rules, save fields), `n1_link.js` (transports: PeerJS, BroadcastChannel, memory; message pieces), `n2_sync.js` (the room: host, join, welcome, every message), `n3_world.js` (blocks, containers, bodies, the mob stream, puppets, the frame tick), `n4_ui.js` (the Multiplayer panel, the badge, `NTEX`) | after PART 53 |
 | 57 | the Malgorath Update (v6.3) | `malgorath/m0_contract.js`, `m1_*` the Bite, `m2_*` the fight, `m3_*` the OG model and effects | 16353-20577 |
 | 56 | the Creativity Update (v6.2) | `creativity/c0_contract.js`, `c1_*` paintings, `c2_*` music | 20578-22058 |
 | 55 | Puppet Purgatory (v6.1) | `purgatory/p0_*` contract, entry, guide; `p1_*` audio, rules, world; `p2_*` craft, gear, items, tiles; `p3_*` mobs, NPCs, rig, spawn; `p4_*` arena and the three headliners; `p5_bots.js` | 22059-30218 |
@@ -247,6 +249,25 @@ Because everything shares one scope, the codebase runs on conventions instead of
 All five updates were originally applied by text-substitution "hooks" at build time. Those hooks are now **folded in**:
 the core files simply contain the calls, and the update files contain everything else. When you change an update, the
 places it touches in the core are ordinary code you can grep for.
+
+### Multiplayer (PART 58, `src/net/`, v7.1)
+
+The host's game is the truth; guests get its world as a save (`netWorldFor`: no host player, no AI players, no mobs) and
+then a stream of messages (`netRecv` lists them all). The core calls it in these places:
+
+- `setBlock` (p03c) sends every change that did not come off the wire (`NET.applying`) through `netEditOut`;
+  `netApplyEdit` writes remote edits into a built chunk or straight into `chunkEdits` (any dimension).
+- `snapshot` / `applySave` / `resetWorld` (p07e): `snapPlayer()` is the player part of a save (a guest sends it to the
+  host); `net.guests` is the save field the host keeps its guests in. `saveToStorage` refuses on a guest.
+- `hurtMob` / `killMob` (p05d): a remote player's body (`e.netp`) routes to `netPvpOut`, a host mob shown on a guest
+  (`e.np`, a puppet) to `netHitOut`; neither dies locally. A guest's kill sends its XP (`netKillXP`).
+- `updateEntities` / `mobsTick` (p05e): bodies and puppets tick in `netEntTick`; a guest in the host's dimension spawns
+  no mobs (`netPuppetMobs`).
+- `mobBotTarget` / `mobHitBot` (a7) and `mob_helpers.js`: remote bodies are targets, anchors and spacing like AI players.
+- `frame` (p07h): `netTick(dt)` every frame; with friends in the world the simulation keeps running behind the pause menu.
+- `explode` (p05b): `netFxOut` (the bang and smoke; the blocks go as edits). `chatSubmit` / `renderTab` (a9): chat out,
+  the room in the Tab list. `quitToTitle` / `enterGame` (p07f): leave or close the room; a guest's world is never the
+  "Continue" world.
 
 ### AI players (PART 53, `src/ai_players/`)
 

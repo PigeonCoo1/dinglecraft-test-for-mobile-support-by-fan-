@@ -184,6 +184,8 @@ function spawnMob(mt,x,y,z){
   }
 }
 function hurtMob(e,dmg,kx,kz){
+  if(e.netp){netPvpOut(e,dmg,kx,kz);return;}   /* a remote player: their damage to take (PART 58) */
+  if(e.np){netHitOut(e,dmg,kx,kz);return;}     /* the host's mob, shown here: the host decides */
   if(e.bot){agHurt(e.A,dmg,HIT_BY||'Dan',kx,kz,HIT_HOW||'melee');return;}
   if(MOBT[e.mt].mg){dmg=mgPreHurt(e,dmg,kx,kz);if(dmg<0)return;}
   if(MOBT[e.mt].pmob){dmg=mpPreHurt(e,dmg,kx,kz);if(dmg<0)return;}
@@ -202,6 +204,7 @@ function hurtMob(e,dmg,kx,kz){
   if(e.hp<=0)killMob(e);
 }
 function killMob(e){
+  if(e.np||e.netp)return;   /* puppets and remote players never die here */
   const T=MOBT[e.mt];
   if(e.blockId)spawnDrop(e.x,e.y+0.4,e.z,{id:e.blockId,count:1},0,2,0);
   if(e.mt==='snake'&&e.segs&&e.segs.length)
@@ -213,7 +216,7 @@ function killMob(e){
     const n=T.drop.min+Math.floor(Math.random()*(T.drop.max-T.drop.min+1));
     if(n>0)spawnDrop(e.x,e.y+0.4,e.z,{id:T.drop.id,count:n},(Math.random()-0.5)*2,2,(Math.random()-0.5)*2);
   }
-  spawnXP(e.x,e.y+0.5,e.z,T.xp||(T.hostile?5:2));
+  if(!netKillXP(T.xp||(T.hostile?5:2)))spawnXP(e.x,e.y+0.5,e.z,T.xp||(T.hostile?5:2));
   if(T.pmob)mpOnKill(e);
   if(T.boss)bossLoot(e);
   if(!(e.hrM&&hrCorpse(e,B.TNT))){burstParticles(e.x,e.y+e.h*0.5,e.z,B.TNT,8,0.5);removeEnt(e);}
@@ -277,7 +280,7 @@ function updateMob(e,dt){
       else{LASTDMG={by:mobNameOf(e.mt),how:'mob',t:AG_T};damagePlayer(T.dmg,pdx,pdz);
       if(T.boss&&!P.dead){P.vy=Math.max(P.vy,9.5);playS('thud');}}
     }
-    if(T.ranged&&e.atkT<=0&&td<15&&(_tb?agSees(_tb.A,e.x,e.y+e.h*0.8,e.z):mobSees(e))){
+    if(T.ranged&&e.atkT<=0&&td<15&&(_tb?(_tb.netp||agSees(_tb.A,e.x,e.y+e.h*0.8,e.z)):mobSees(e))){
       e.atkT=1.9;
       const a=[e.x,e.y+e.h*0.8,e.z],b=_tb?[_tb.x,_tb.y+1.4,_tb.z]:eyePos();
       const dx=b[0]-a[0],dy=b[1]-a[1]+td*0.06,dz=b[2]-a[2];

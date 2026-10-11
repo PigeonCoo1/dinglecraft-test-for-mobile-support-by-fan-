@@ -24,7 +24,7 @@ if (!G) { console.log(pass + ' passed, ' + fail + ' failed'); process.exit(1); }
 const E = G.entries || [], S = G.steps || [];
 
 // ---- groups, entries, files
-const GROUPS = ['repo', 'core', 'texpacks', 'purgatory', 'pilot', 'creativity', 'malgorath', 'og_trace'];
+const GROUPS = ['repo', 'core', 'texpacks', 'purgatory', 'pilot', 'creativity', 'malgorath', 'net', 'og_trace'];
 ok('gate groups are, in order: ' + GROUPS.join(' '), JSON.stringify(G.groups) === JSON.stringify(GROUPS));
 ok('every entry names a known group, a suite, a clock (static|real|fake) and a repeat >= 1',
   E.every((e) => GROUPS.includes(e.group) && typeof e.suite === 'string' && ['static', 'real', 'fake'].includes(e.clock) && e.repeat >= 1 && typeof e.name === 'string'));
@@ -32,7 +32,7 @@ const names = [...E, ...S].map((e) => e.name);
 ok('gate entry names are unique', new Set(names).size === names.length);
 const missing = E.filter((e) => !exists(e.suite)).map((e) => e.suite);
 ok('every listed suite exists' + (missing.length ? ' (missing: ' + missing.join(', ') + ')' : ''), missing.length === 0);
-const SUITE_DIRS = ['tests/core', 'tests/texpacks', 'tests/purgatory', 'tests/pilot', 'tests/creativity', 'tests/malgorath', 'tests/repo', 'tests/ui'];
+const SUITE_DIRS = ['tests/core', 'tests/texpacks', 'tests/purgatory', 'tests/pilot', 'tests/creativity', 'tests/malgorath', 'tests/net', 'tests/repo', 'tests/ui'];
 const listed = new Set([...E.map((e) => e.suite), ...(G.helpers || [])]);
 const unlisted = SUITE_DIRS.flatMap((d) => walk(d)).filter((f) => f.endsWith('.js') && !listed.has(f));
 ok('every .js under the suite dirs is a gate entry or a listed helper' + (unlisted.length ? ' (unlisted: ' + unlisted.join(', ') + ')' : ''), unlisted.length === 0);

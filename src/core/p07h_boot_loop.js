@@ -34,13 +34,14 @@ function frame(t){
   const dt=Math.min(0.05,Math.max(0,t-lastT)/1000||0.016)*GAMESPD;lastT=t;
   if(playing&&P){
     touchTick(t);   /* the touch pad first (p06c): its context, hold-to-mine, Pocket Performance; a vehicle never sees a toggled SNEAK */
-    if(!paused){
+    netTick(dt);    /* multiplayer (PART 58): with friends in the world it keeps running behind the pause menu */
+    if(!paused||NET.on){
       if(GR.dayCycle)timeOfDay+=dt/DAY_LEN;
       drainLook();
       updatePlayer(dt);
       updateEntities(dt);
       mobsTick(dt);
-      furnaceTick(dt);
+      if(!netPuppetMobs())furnaceTick(dt);   /* a guest in the host's dimension: the host's furnaces cook */
       updateChunks();
       updateSky(dt);
       updateTorchLights();
@@ -58,7 +59,7 @@ function frame(t){
     updateDisaster(paused?0:dt);
     if(playing&&!paused)updateStocks(dt);
     trickFrame(paused?0:dt);
-    if(playing&&!paused){if(DIM==='over'){processVillages(dt);processParks(dt);processWD(dt);processCells(dt);tickTitans(dt);processRoosts(dt);tickMalg(dt);tickCompass(dt);}tickSpawners(dt);updateBossBar();updateXPHud();tickFlow(dt);updateArmorHud();tickDragons(dt);tickTrail(dt);tickBPass(dt);updateCut(dt);tickWin(dt);tickNuke(dt);tickMega(dt);tickTerr(dt);tickXray(dt);tickGadgets(dt);tickBig(dt);tickDisp(dt);tickLawns(dt);tickCine(dt);tickSnail(dt);tickScare(dt);tickHorror(dt);processNether(dt);processAether(dt);processPuppet(dt);tickPortal(dt);tickBots(dt);tickPCompass(dt);processCrea(dt);}
+    if(playing&&(!paused||NET.on)){if(DIM==='over'){processVillages(dt);processParks(dt);processWD(dt);processCells(dt);tickTitans(dt);processRoosts(dt);tickMalg(dt);tickCompass(dt);}tickSpawners(dt);updateBossBar();updateXPHud();tickFlow(dt);updateArmorHud();tickDragons(dt);tickTrail(dt);tickBPass(dt);updateCut(dt);tickWin(dt);tickNuke(dt);tickMega(dt);tickTerr(dt);tickXray(dt);tickGadgets(dt);tickBig(dt);tickDisp(dt);tickLawns(dt);tickCine(dt);tickSnail(dt);tickScare(dt);tickHorror(dt);processNether(dt);processAether(dt);processPuppet(dt);tickPortal(dt);tickBots(dt);tickPCompass(dt);processCrea(dt);}
     const hideCur=playing&&!paused&&P&&!P.dead&&!modalOpen();
     if(hideCur!==curHidden){curHidden=hideCur;$('gl').style.cursor=hideCur?'none':'default';}
     engineSnd(!paused&&!!P.ride&&(P.ride.t==='car'||P.ride.t==='plane'),P.ride?P.ride.spd:0);

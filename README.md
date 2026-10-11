@@ -31,6 +31,12 @@ Internet...) and it switches to touch controls by itself: a move stick under you
 hold to mine, and buttons for everything else (Settings -> Touch controls: Auto / On / Off). Pocket Performance keeps it
 smooth on phones. Landscape plays best; portrait works too.
 
+**With friends in other houses** (since Release 1.1): one of you opens a world, pauses, taps **🌐 Multiplayer → Open to
+friends** and reads out the five-letter room code. Everyone else opens DINGLECRAFT (the same version), taps **🌐
+Multiplayer** on the title screen and types the code: phones, tablets and computers mix freely. You need an internet
+connection for this part; a free public matchmaker introduces the devices and then they talk directly. The host's world
+keeps everyone's things for next time.
+
 You need a browser with WebGL (WebGL2 for the Hyperreal texture pack). No internet connection: three.js is
 bundled into the file. To build the file yourself you need [Node.js](https://nodejs.org) 20 or newer (22 is what we use; see
 `.nvmrc`). Nothing else.

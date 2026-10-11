@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [repo, core, texpacks, purgatory, pilot, creativity, malgorath, og_trace]
+        group: [repo, core, texpacks, purgatory, pilot, creativity, malgorath, net, og_trace]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

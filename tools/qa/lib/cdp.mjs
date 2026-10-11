@@ -9,8 +9,9 @@ import {REPO,defaultBuild,outDir,gameVersion} from './paths.mjs';
 export {REPO,defaultBuild,outDir,gameVersion};
 export const ROOT=REPO+'/';
 export function args(){return Object.fromEntries(process.argv.slice(2).reduce((m,a,i,arr)=>{if(a.startsWith('--'))m.push([a.slice(2),arr[i+1]&&!arr[i+1].startsWith('--')?arr[i+1]:'1']);return m;},[]));}
-export async function connect(port){const list=await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  let pg=list.find(t=>t.type==='page');if(!pg)pg=await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`,{method:'PUT'})).json();
+/* connect(port) drives the first page; connect(port,{fresh:true}) opens a new tab and drives that one (two players, net_qa) */
+export async function connect(port,o){const list=await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+  let pg=o&&o.fresh?null:list.find(t=>t.type==='page');if(!pg)pg=await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`,{method:'PUT'})).json();
   const ws=new WebSocket(pg.webSocketDebuggerUrl);let id=0;const pend=new Map(),logs=[];
   ws.onmessage=ev=>{const m=JSON.parse(ev.data);if(m.id&&pend.has(m.id)){pend.get(m.id)(m);pend.delete(m.id);}
     else if(m.method==='Runtime.consoleAPICalled'){const t=m.params.type;if(t==='error'||t==='warning')logs.push(t+': '+m.params.args.map(x=>x.value!==undefined?x.value:(x.description||'')).join(' ').slice(0,300));}

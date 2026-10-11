@@ -1,7 +1,7 @@
 /* ----- modal / inventory system ----- */
 const MODAL={kind:null,slots:[],grid:null,gw:0,be:null,bek:null};
 let cursorStack=null;
-function modalOpen(){return !!MODAL.kind||crOn||pcOpen||dlgOpen||casOpen||dselOpen||enchOpen||storeOpen||powOpen||winOpen||cmpOpen||dbgmOpen||patchOpen||setOpen||terrOpen||helpOpen||cineOpen||chatOpen||pguOn||presOn;}
+function modalOpen(){return !!MODAL.kind||crOn||pcOpen||dlgOpen||casOpen||dselOpen||enchOpen||storeOpen||powOpen||winOpen||cmpOpen||dbgmOpen||patchOpen||setOpen||terrOpen||helpOpen||cineOpen||chatOpen||pguOn||presOn||netpOpen;}
 
 function slotDiv(cls){
   const d=document.createElement('div');d.className='slot'+(cls?' '+cls:'');

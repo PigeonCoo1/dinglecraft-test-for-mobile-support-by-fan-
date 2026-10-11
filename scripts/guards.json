@@ -4,6 +4,7 @@
   "sections": [
     { "name": "PART 55", "from": "/* ---- PART 55: ", "to": "/* ---- PART 54: t0_contract.js ---- */", "cap": 950000, "mode": "optional" },
     { "name": "PART 56", "from": "/* ---- PART 56: ", "to": "/* ---- PART 55: p0_contract.js ---- */", "cap": 450000, "mode": "required", "note": "must sit right before PART 55" },
+    { "name": "PART 58", "from": "/* ---- PART 58: ", "to": "/* ---- PART 57: m0_contract.js ---- */", "cap": 200000, "mode": "required", "note": "must sit right before PART 57" },
     { "name": "PART 57", "from": "/* ---- PART 57: m0_contract.js ---- */", "to": "/* ---- PART 56: c0_contract.js ---- */", "cap": 600000, "mode": "required", "lastIndexOf": "/* ---- PART 57: ", "note": "must sit right before PART 56" },
     { "name": "PART 57 HR block", "from": "/* ---- PART 57 HR: ", "to": "/* the Hyperreal cast (src/texpacks/models)", "cap": 700000, "mode": "required", "note": "must sit right before hrLoadModels" }
   ]

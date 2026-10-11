@@ -69,6 +69,7 @@ function setupInput(){
     if(e.code==='KeyP'&&playing&&!P.dead&&!paused){if(powOpen)closePow();else if(!modalOpen())openPow();}
     if(e.code==='Escape'){
       if(helpOpen){showToast('There is no escape from Controls. Read. Learn. Click Close.');}
+      else if(netpOpen)closeNetPanel();
       else if(terrOpen)closeTerr();
       else if(cineOpen)closeCine();
       else if(presOn)presClose();
