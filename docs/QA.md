@@ -68,6 +68,14 @@ Contact sheets are 5×6 tiles, so thirty frames can be judged at once.
   toasts, a boss bar, a creativity editor and the bot panel at 1280x720, 1920x1080 and 2560x1440 at every UI scale, measures
   that every panel sits inside the window without overlaps (a toast over every title view and menu; F3 and the player list
   in the HUD pairs), and writes 5x6 sheets (its header has the options).
+- **Touch / mobile (v7.0):** `node tools/qa/ui/mobile_qa.mjs --launch --port <p>` emulates five screens (phone landscape and
+  portrait, a small phone, a tablet, an Android phone) with touch on, photographs the title, play, the inventories, pause,
+  Settings, chat, the ··· drawer, DEEP DIRT 2D, a car and the cinema, checks no pad button is off screen or overlaps another
+  and every open panel fits, and on the first screen plays with fingers (walk, look, two fingers, tap places, hold mines,
+  JUMP, creative fly, eating, SPLIT, the drawer, chat, Touch controls Off). Gestures are built in the page (the pointer and
+  touch events a phone browser fires): with rAF frozen the compositor never commits the touch-listener regions, so CDP's
+  `Input.dispatchTouchEvent` gets dropped at random (`--cdp-touch` uses it anyway; Chrome then needs `--touch-events=enabled`).
+  In a container that runs as root, Chrome also needs `--no-sandbox`: `CHROME_FLAGS="--no-sandbox" tools/qa/chrome.sh <p>`.
 
 Release 1.0 cleared the old known misses: `creativity/cz_qa.mjs`'s patch-notes step (it opens the retired, hidden panel
 through `openPatch()` to read `PATCH_LOG`; players cannot reach it) and `release_qa.mjs` read the current

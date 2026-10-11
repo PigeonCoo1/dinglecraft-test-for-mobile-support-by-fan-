@@ -555,7 +555,7 @@ function renderTerr(camX,camY){
         ev.preventDefault();return;
       }
       if(TG.mx>=560&&TG.my<=24){TG.craft=!TG.craft;ev.preventDefault();return;}
-      if(ev.button===2)TG.place=true;else TG.md=true;
+      if(ev.button===2||TCH.build)TG.place=true;else TG.md=true;   /* touch: BUILD (p06c) */
       ev.preventDefault();
     });
     addEventListener('pointerup',()=>{TG.md=false;});

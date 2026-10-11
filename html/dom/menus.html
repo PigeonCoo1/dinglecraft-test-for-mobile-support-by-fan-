@@ -38,13 +38,15 @@
     <h2>⚙️ Settings</h2>
     <div class="mlabel">UI Scale <span id="s_uiinfo" class="sinfo"></span></div>
     <div id="s_ui" class="seg" role="group" aria-label="UI Scale"><button class="mc-btn" data-ui="auto">Auto</button><button class="mc-btn" data-ui="1">100%</button><button class="mc-btn" data-ui="1.25">125%</button><button class="mc-btn" data-ui="1.5">150%</button><button class="mc-btn" data-ui="2">200%</button></div>
+    <div class="mlabel">Touch controls <span id="s_tcinfo" class="sinfo"></span></div>
+    <div id="s_tc" class="seg" role="group" aria-label="Touch controls"><button class="mc-btn" data-tc="auto">Auto</button><button class="mc-btn" data-tc="on">On</button><button class="mc-btn" data-tc="off">Off</button></div>
     <div class="mlabel">Render distance: <span id="p_rdv">8</span> chunks (max 32 — heavy!)</div>
     <input id="p_rd" class="range" type="range" min="2" max="32" step="1" value="8">
     <div class="mlabel">Field of view: <span id="s_fovv">75</span>°</div>
     <input id="s_fov" class="range" type="range" min="50" max="110" step="1" value="75">
     <div class="mlabel">Your name</div>
     <input id="s_pname" class="mc-in" maxlength="16" autocomplete="off" spellcheck="false">
-    <div class="mlabel">Mouse sensitivity: <span id="s_sensv">100</span>%</div>
+    <div class="mlabel">Look sensitivity (mouse and touch): <span id="s_sensv">100</span>%</div>
     <input id="s_sens" class="range" type="range" min="10" max="300" step="5" value="100">
     <div class="mlabel">Sound volume: <span id="s_sfxv">100</span>%</div>
     <input id="s_sfx" class="range" type="range" min="0" max="100" step="1" value="100">
@@ -56,6 +58,7 @@
     <button id="p_bright" class="mc-btn">Fullbright: Off</button>
     <button id="s_shaders" class="mc-btn">✨ Shaders: Off</button>
     <button id="s_replay" class="mc-btn" title="Keeps the last 30 seconds of play ready: press F8 to save it as an MP4">🎬 Replays: On</button>
+    <button id="s_perf" class="mc-btn" title="Phones and tablets: the resolution follows the frame rate (OG pack) and the first render distance is lighter">📱 Pocket Performance: Auto</button>
     </div>
     <div class="mlabel">Texture pack</div>
     <select id="s_pack" class="mc-in"><option value="og">OG (16px classic)</option><option value="hr">Hyperreal (cursed PBR)</option></select>

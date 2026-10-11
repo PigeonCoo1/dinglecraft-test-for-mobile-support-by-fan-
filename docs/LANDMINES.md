@@ -70,6 +70,22 @@ Grep for names with `tools/grep-safe.sh`.
   F3 and the player list in the HUD overlap pairs. A widget `hudLayout` hides (`visibility:hidden`) is not visible, so it
   is not a pair.
 
+## Touch controls (v7.0, `ui/p06c_touch.js`)
+
+- **Buttons send real keys.** `touchKey` dispatches a `KeyboardEvent` on `document`, so a button runs exactly the keyboard's
+  code (the Esc chain, chat, creativity, replays). A new keyboard feature works on touch once a button or the ··· drawer
+  sends its key; it does not need its own touch code. In node it only sets `KEY` (no DOM events there).
+- **`touchTick` runs first in the frame**, before `updatePlayer`: a context change (getting into a vehicle) must clear the
+  SNEAK toggle before the ride code reads Shift, or Dan is thrown straight back out.
+- **A tap is a right-click held for two frames** (`touchPulseR`), and a held key from `touchTap` lasts 140 ms: polling code
+  (`terrKey`, the cinema) needs a frame to see it.
+- **Overlays sit at z 20.** Pad pieces that must work over one (DEEP DIRT 2D, the cinema, the close button, the inventory
+  tap bar) are raised per context in `core.css`; the stick zone sits under `#hud` (z 4) so the hotbar keeps its taps.
+- **The touch UI scale goes below 100%** (`uiCaps(w,h,true)`, floor 45%): without touch nothing changed, so the desktop caps
+  and their suite are untouched.
+- **Pocket Performance only drives the pixel ratio in OG.** Hyperreal owns it (its quality tiers); `TCH.rdKeep` holds the
+  player's render distance while the automatic one is lower, and `saveSettings` saves that.
+
 ## Texture packs (PART 54)
 
 - **OG must not change.** Every Hyperreal hook is guarded (`TP.hr`, `HRW.on`, `HRL.on`, `HRE.on`, `opts.hr`, `e.hrM`,

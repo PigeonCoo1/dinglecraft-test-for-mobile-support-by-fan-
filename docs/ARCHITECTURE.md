@@ -78,7 +78,7 @@ Line ranges are where each piece sat in the shipped v6.3 `game.js`, handy when a
 | 3 | world generation, chunk store, mesher | `world/p03a_terrain.js`, `world/p03b_dimkeys_genchunk.js`, `world/p03c_chunk_store.js`, `world/p03d_mesher.js` | 603-1088 |
 | 4 | physics, raycast, player | `core/p04a_physics.js`, `core/p04b_raycast.js`, `core/p04c_player.js`, `core/p04d_player_update.js` | 1089-2024 |
 | 5 | entities: drops, falling blocks, arrows, TNT, particles, mobs, spawning | `entities/p05a_entities_drops.js`, `p05b_falling_arrows_tnt.js`, `p05c_particles.js`, `p05d_mobs.js`, `p05e_spawning_tick.js` | 2025-2743 |
-| 6 | HUD, input, touch, modals and inventory; the UI scale (6e, new in Release 1.0) | `ui/p06a_hud.js`, `ui/p06b_input.js`, `ui/p06c_touch.js`, `ui/p06d_modal_inventory.js`, `ui/p06e_ui_scale.js` | 2744-3488 |
+| 6 | HUD, input, touch (6c: the full mobile pad, Pocket Performance; v7.0), modals and inventory; the UI scale (6e, new in Release 1.0) | `ui/p06a_hud.js`, `ui/p06b_input.js`, `ui/p06c_touch.js`, `ui/p06d_modal_inventory.js`, `ui/p06e_ui_scale.js` | 2744-3488 |
 | 7 | rendering and sound, furnace, sky and lights, hand and camera, saves, world lifecycle, menus, boot and the main loop | `core/p07a_render_sound.js`, `p07b_furnace.js`, `p07c_sky_lights.js`, `p07d_hand_camera.js`, `p07e_save_load.js`, `p07f_world_lifecycle.js`, `ui/p07g_menus.js`, `ui/p07g_title.js` (the title menu and its background, 7g2, new in Release 1.0), `core/p07h_boot_loop.js` | 3489-4310 |
 | 8 | wall torches, weapons, vehicles, music | `features/p08_torches_weapons_vehicles_music.js` | 4311-4784 |
 | 9 | Critter Jars (catch a mob, throw it back out) | `entities/p09_critter_jars.js` | 4785-4904 |

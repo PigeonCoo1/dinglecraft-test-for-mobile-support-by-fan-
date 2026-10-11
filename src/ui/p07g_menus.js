@@ -26,7 +26,7 @@ function wireMenus(){
     drawStats();
   };
   $('p_rd').addEventListener('input',e=>{
-    RD=clamp(+e.target.value,2,32);
+    RD=clamp(+e.target.value,2,32);TCH.rdKeep=0;   /* the player's own choice beats Pocket Performance (p06c) */
     $('p_rdv').textContent=RD;
     saveSettings();
     if(RD>=16&&!window._rdWarned){window._rdWarned=true;showToast('Big render distances take a while to fill in (and eat GPUs).');}

@@ -1,9 +1,49 @@
-<div id="joy" class="touchui"><div id="joynub"></div></div>
-<button id="btnjump" class="tbtn touchui">JUMP</button>
-<button id="btnsneak" class="tbtn touchui">SNEAK</button>
-<button id="btndrop" class="tbtn touchui">DROP</button>
-<button id="btninv" class="tbtn touchui">INV</button>
-<button id="btnpause" class="tbtn touchui">| |</button>
+<div id="tpad" class="touchui">
+  <div id="joyzone"></div>
+  <div id="joy"><div id="joynub"></div></div>
+  <div id="tright">
+    <button id="btnmine" class="tbtn tp tp-play tp-ride" aria-label="Mine / attack (hold)">MINE</button>
+    <button id="btnuse" class="tbtn tp tp-play tp-ride" aria-label="Use / place / eat (hold)">USE</button>
+    <button id="btnjump" class="tbtn tbig tp tp-play tp-ride tp-terr tp-cine" aria-label="Jump">JUMP</button>
+    <button id="btnsneak" class="tbtn tp tp-play tp-ride" aria-label="Sneak">SNEAK</button>
+    <button id="btnsprint" class="tbtn tp tp-play" aria-label="Sprint">RUN</button>
+    <button id="btnhonk" class="tbtn tp tp-ride" aria-label="Honk">HONK</button>
+    <button id="btnitem" class="tbtn tp tp-terr" aria-label="Next item">ITEM</button>
+    <button id="btnbuild" class="tbtn tp tp-terr" aria-label="Build mode">BUILD</button>
+    <button id="btncraft" class="tbtn tp tp-terr" aria-label="Craft">CRAFT</button>
+    <button id="btnc1" class="tbtn tp tp-cine" aria-label="Pick 1">1</button>
+    <button id="btnc2" class="tbtn tp tp-cine" aria-label="Pick 2">2</button>
+    <button id="btnc3" class="tbtn tp tp-cine" aria-label="Pick 3">3</button>
+    <button id="btnce" class="tbtn tp tp-cine" aria-label="Enter">E</button>
+  </div>
+  <div id="tside">
+    <button id="btninv" class="tbtn tsm tp tp-play tp-ride" aria-label="Inventory">INV</button>
+    <button id="btndrop" class="tbtn tsm tp tp-play tp-ride" aria-label="Drop">DROP</button>
+  </div>
+  <div id="ttop">
+    <button id="btnpause" class="tbtn tsq tp tp-play tp-ride" aria-label="Pause">| |</button>
+    <button id="btnmore" class="tbtn tsq tp tp-play tp-ride" aria-label="More">&middot;&middot;&middot;</button>
+    <button id="btnchat" class="tbtn tsq tp tp-play tp-ride" aria-label="Chat">CHAT</button>
+    <button id="btncam" class="tbtn tsq tp tp-play tp-ride" aria-label="Camera">CAM</button>
+    <button id="btnback" class="tbtn tsq tp tp-modal tp-inv tp-terr tp-cine tp-chat tp-cut" aria-label="Back">&#x2715;</button>
+    <button id="btnsend" class="tbtn tsq tp tp-chat" aria-label="Send">SEND</button>
+  </div>
+  <div id="tmore">
+    <button class="tbtn twide" data-tk="KeyP">&#x26A1; Powers</button>
+    <button class="tbtn twide" data-tk="Tab">&#x1F465; Players</button>
+    <button class="tbtn twide" data-tk="F2">&#x1F4F8; Photo</button>
+    <button class="tbtn twide" data-tk="F8">&#x1F3AC; Replay</button>
+    <button class="tbtn twide" data-tk="F3">&#x1F6E0; Debug</button>
+    <button id="btnfull" class="tbtn twide">&#x26F6; Fullscreen</button>
+  </div>
+  <div id="tinvbar" class="tp tp-inv">
+    <span class="tlab">TAP</span>
+    <button class="tbtn tmod on" data-tm="">MOVE</button>
+    <button class="tbtn tmod" data-tm="split">SPLIT</button>
+    <button class="tbtn tmod" data-tm="quick">QUICK</button>
+    <button id="btnsort" class="tbtn tmod">SORT</button>
+  </div>
+</div>
 
 <div id="cursor"><canvas width="48" height="48"></canvas></div>
 

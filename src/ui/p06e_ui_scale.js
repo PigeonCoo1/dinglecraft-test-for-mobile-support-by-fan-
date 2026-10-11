@@ -39,15 +39,23 @@ function uiPrefNorm(v){
   if(v==='auto'||v===undefined||v===null||v==='')return 'auto';
   const n=+v;return UI_STEPS.includes(n)?n:'auto';
 }
-/* the largest scale (0.05 steps, never below 100%) at which the inventory fits the window, and the HUD row fits beside its badges */
-function uiCaps(w,h){
+/* the largest scale (0.05 steps, never below 100%) at which the inventory fits the window, and the HUD row fits beside its badges.
+   touch (v7.0, a phone or tablet with the touch pad up): below 100% too, down to 45%, so every panel fits a phone; the HUD row
+   fits between the move stick and the button cluster in landscape (each about 3 buttons wide, p06c / core.css --tb), across the
+   width in portrait (the pad sits above it there) */
+function uiCaps(w,h,touch){
   const m=Math.min((w-16)/UI_BASE.modalW,(h-16)/UI_BASE.modalH);
+  if(touch){
+    const tb=Math.min(80,Math.max(46,0.125*Math.min(w,h))),room=w>h?w-2*(3*tb+30):w-16;
+    const th=Math.min(room/UI_BASE.hudW,h/UI_BASE.hudH),f=v=>Math.max(0.45,Math.floor(v*20+1e-9)/20);
+    return {modal:f(m),hud:f(th)};
+  }
   const hu=Math.min((w/2-10)/(UI_BASE.hudW/2+UI_BASE.hudSide),h/UI_BASE.hudH);
   return {modal:Math.max(1,Math.floor(m*20+1e-9)/20),hud:Math.max(1,Math.floor(hu*20+1e-9)/20)};
 }
-function uiCompute(pref,w,h,dpr){
+function uiCompute(pref,w,h,dpr,touch){
   pref=uiPrefNorm(pref);
-  const want=pref==='auto'?uiAutoScale(w,h,dpr):pref,c=uiCaps(w,h);
+  const want=pref==='auto'?uiAutoScale(w,h,dpr):pref,c=uiCaps(w,h,touch);
   return {pref,want,eff:Math.min(want,c.modal),hud:Math.min(want,c.hud),cap:c};
 }
 function uiSetVar(k,v){
@@ -59,7 +67,7 @@ function uiApply(env){
   const w=env&&env.w>0?env.w:(typeof innerWidth==='number'&&innerWidth>0?innerWidth:1280);
   const h=env&&env.h>0?env.h:(typeof innerHeight==='number'&&innerHeight>0?innerHeight:720);
   const dpr=env&&env.dpr>0?env.dpr:(typeof devicePixelRatio==='number'&&devicePixelRatio>0?devicePixelRatio:1);
-  const r=uiCompute(UIS.pref,w,h,dpr),on=UIS.live||!!env;
+  const r=uiCompute(UIS.pref,w,h,dpr,env&&'touch' in env?!!env.touch:TCH.on),on=UIS.live||!!env;
   const eff=on?r.eff:1,hud=on?r.hud:1,changed=eff!==UIS.eff||hud!==UIS.hud||dpr!==UIS.dpr;
   UIS.w=w;UIS.h=h;UIS.dpr=dpr;UIS.want=r.want;UIS.eff=eff;UIS.hud=hud;
   uiSetVar('--uiz',eff);uiSetVar('--uih',hud);

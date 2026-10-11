@@ -27,7 +27,7 @@ function lockAttempt(n){
   },450);
 }
 function tryLock(){
-  if(!usePLock)return;
+  if(!usePLock||TCH.on)return;   /* touch play never captures a pointer (p06c) */
   if(!$('gl').requestPointerLock){usePLock=false;return;}
   if(!playing||paused||modalOpen()||(P&&P.dead))return;
   lockWanted=true;

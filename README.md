@@ -26,7 +26,12 @@ The whole game is about 41,000 lines of plain JavaScript, built here from per-sy
 GitHub and press the download button) and double-click it. That is the whole game, on Windows, macOS or Linux. It is
 developed and tested in Chrome, so an up-to-date Chrome or Edge is the safest bet.
 
-You need a desktop browser with WebGL (WebGL2 for the Hyperreal texture pack). No internet connection: three.js is
+**On a phone or tablet** (since Release 1.1): open the game in the device's browser (Chrome, Safari, Firefox, Samsung
+Internet...) and it switches to touch controls by itself: a move stick under your left thumb, drag to look, tap to place,
+hold to mine, and buttons for everything else (Settings -> Touch controls: Auto / On / Off). Pocket Performance keeps it
+smooth on phones. Landscape plays best; portrait works too.
+
+You need a browser with WebGL (WebGL2 for the Hyperreal texture pack). No internet connection: three.js is
 bundled into the file. To build the file yourself you need [Node.js](https://nodejs.org) 20 or newer (22 is what we use; see
 `.nvmrc`). Nothing else.
 
