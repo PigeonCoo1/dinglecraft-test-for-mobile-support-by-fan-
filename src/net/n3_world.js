@@ -53,7 +53,7 @@ function netMyPose(){
   return {x:+P.x.toFixed(2),y:+P.y.toFixed(2),z:+P.z.toFixed(2),yaw:+P.yaw.toFixed(3),pitch:+P.pitch.toFixed(3),d:DIM,
     sn:P.sneak?1:0,sw:P.swing>0.3?1:0,h:st?st.id:0,hp:Math.round(P.hp),dead:P.dead?1:0,
     rd:P.ride?(P.ride.t==='mob'?P.ride.mt:P.ride.t):0,ro:P.ride&&netClient()?1:0,ry:P.ride?+(P.ride.yaw||0).toFixed(3):0,   /* ro: a ride only this screen has (n4) */
-    ac:netDoing(),ht:P.cos&&P.cos.hat||0,tg:terrOpen&&TG.bek?[TG.bek,+TG.px.toFixed(2),+TG.py.toFixed(2),TG.dir]:0};
+    ac:netDoing(),ht:P.cos&&P.cos.hat||0,tg:terrOpen&&TG.bek?[TG.bek,+TG.px.toFixed(2),+TG.py.toFixed(2),TG.dir]:0,sl:netSnailPose()};
 }
 function netPosesOut(){
   const me=netMyPose();if(!me)return;
@@ -82,6 +82,7 @@ function netBodiesSync(){
     if(want&&!p.body)netBodyMake(p);
     netRidePupSync(p);netRidePupMove(p);
     if(p.body)netBodyDress(p.body,q);
+    netSnailSync(p);
   }
 }
 function netBodyTick(e,dt){

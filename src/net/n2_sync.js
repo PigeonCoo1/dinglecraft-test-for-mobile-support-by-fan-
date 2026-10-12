@@ -68,7 +68,7 @@ function netPeerGone(p,why){
   if(!NET.peers.has(p.id))return;
   netRideOrphan(p);
   NET.peers.delete(p.id);
-  netBodyDrop(p);
+  netBodyDrop(p);netSnailDrop(p);
   if(netHost()){netBcast({t:'pl',id:p.id});if(p.tr!=null)NET.byTr.delete(p.tr);}
   sysMsg('[LINK] '+p.name+(why==='kick'?' was removed from the world':' left the world'));
   if(typeof netUiSync==='function')netUiSync();
@@ -136,7 +136,7 @@ function netStop(why){
   const T=NET.tr;
   if(NET.hb){clearInterval(NET.hb);NET.hb=0;}
   setTimeout(()=>{try{if(T)T.close();}catch(e){}},why==='test'?0:250);
-  for(const p of NET.peers.values())netBodyDrop(p);
+  for(const p of NET.peers.values()){netBodyDrop(p);netSnailDrop(p);}
   netPupClear();
   netDisEnd();NET.abx.length=0;
   netMgDrop();NET.mgA.clear();NET.mg=null;NET.mgPull=null;NET.mgFx.length=0;

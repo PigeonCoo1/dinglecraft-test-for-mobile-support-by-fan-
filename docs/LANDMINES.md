@@ -101,6 +101,8 @@ Grep for names with `tools/grep-safe.sh`.
   the boss is made with `mgSpawnBoss` (from tickMalg's seat) and is a puppet (`e.np`), and `mgAbandon`/`mgOnDie`/
   `mgOnRespawn` do nothing (they would run M2 on a fresh `MG2`, and M1's resets write blocks). A new attack in PART 57
   that hurts or moves `P` only (not through the target helpers) is not shared until it is.
+- **One Eternal Snail per player.** Each screen's PART 47 snail hunts its own `P` (untouched); its position rides the pose
+  (`sl`) and other screens draw a `t:'netsnail'` copy (no update branch, never saved, never touches anyone).
 - **Copies of a friend's effects carry `e.fx`.** A grenade copy never explodes, a lava bomb copy never sets lava or fire,
   a twister copy never shreds blocks (`netTwisterTick`), a boulder copy may still hit this screen's player. The Big
   Dingle's crater is carved into chunks directly (not edits), so every screen runs `megaNuke` itself (`NET.applying` set:

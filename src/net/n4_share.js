@@ -248,3 +248,24 @@ function netFxTick(dt){
     if(!NARM.e){nukeHud(e.nt);const now=Math.ceil(e.nt);if(now!==prev&&now>0)playS(now<=5?'ntickf':'ntick');e.sir-=dt;if(e.sir<=0&&e.nt>0){e.sir=2.4;playS('siren');}}
     if(e.nt<-3){removeEnt(e);NET.abx.splice(i,1);if(!NARM.e)nukeHud(-1);}}
 }
+
+/* ----- the Eternal Snail: one each. Every screen's own snail hunts its own player (PART 47, untouched); everybody else sees it as
+   a copy with its owner's name on it. A copy never touches anyone: only your own snail can get you. ----- */
+function netSnailPose(){return GR.snail&&SNL&&!SNL.dead?[+SNL.x.toFixed(2),+SNL.y.toFixed(2),+SNL.z.toFixed(2),+(SNL.mesh?SNL.mesh.rotation.y:0).toFixed(2)]:0;}
+function netSnailDrop(p){if(p&&p.snail){if(!p.snail.dead)removeEnt(p.snail);p.snail=null;}}
+function netSnailSync(p){
+  const q=p.pose,sl=q&&q.sl,want=!!(p.ready&&q&&q.d===DIM&&GR.snail&&Array.isArray(sl)&&sl.length===4);
+  if(p.snail&&(p.snail.dead||!want))netSnailDrop(p);
+  if(!want)return;
+  let e=p.snail;
+  if(!e){
+    const g=new THREE.Group(),m=new THREE.Mesh(wpnGeo('snail',-1),new THREE.MeshLambertMaterial({vertexColors:true}));
+    m.scale.set(1.6,1.6,1.6);g.add(m);
+    const tag=agTag(p.name+'\u2019s snail');tag.position.y=1.7;g.add(tag);
+    scene.add(g);g.position.set(sl[0],sl[1],sl[2]);
+    e={t:'netsnail',x:sl[0],y:sl[1],z:sl[2],mesh:g,NP:p,bob:0};entities.push(e);p.snail=e;
+  }
+  if(Math.hypot(sl[0]-e.x,sl[2]-e.z)>6){e.x=sl[0];e.y=sl[1];e.z=sl[2];}
+  else{e.x+=(sl[0]-e.x)*0.2;e.y+=(sl[1]-e.y)*0.2;e.z+=(sl[2]-e.z)*0.2;}
+  e.bob+=0.016;e.mesh.position.set(e.x,e.y+Math.sin(e.bob*2.2)*0.03,e.z);e.mesh.rotation.y=sl[3];
+}

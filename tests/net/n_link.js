@@ -179,6 +179,21 @@ boot.run(async()=>{
     V.endDisaster(true);step(10);drain(T);
     V.P.pitch=0;V.fireLaser();L=drain(T);const bm=of(L,'fx','trA').find(x=>x.m.k==='beam');
     ok('laser eyes: the beam goes out (start, length, end)',!!bm&&Array.isArray(bm.m.e)&&bm.m.r>0);step(10);drain(T);}
+  /* the Eternal Snail: one each, everybody sees everybody's */
+  {V.GR.snail=true;const sx=P().x+4,sy=P().y,sz=P().z;
+    send('trA',{t:'po',p:{x:P().x+8,y:P().y,z:P().z,yaw:0,pitch:0,d:'over',sn:0,sw:0,h:0,hp:20,dead:0,rd:0,sl:[sx,sy,sz,1.2]}});step(3);
+    const cs=V.entities.find(e=>e.t==='netsnail'&&!e.dead);
+    ok('a guest’s own snail shows on the host’s screen, with the guest’s name on it',!!cs&&cs.NP.name==='Kim'&&Math.abs(cs.x-sx)<0.5&&cs.mesh.children.length===2);
+    const hp0=P().hp;P().x=cs.x;P().y=cs.y;P().z=cs.z;P().vx=P().vy=P().vz=0;step(4);
+    ok('...and it never touches the host (only your own snail can get you)',!P().dead&&P().hp===hp0);
+    send('trA',{t:'po',p:{x:P().x+8,y:P().y,z:P().z,yaw:0,pitch:0,d:'over',sn:0,sw:0,h:0,hp:20,dead:0,rd:0,sl:0}});step(2);
+    ok('no snail in the guest’s pose: no copy here',cs.dead&&!V.entities.some(e=>e.t==='netsnail'&&!e.dead));
+    drain(T);step(4);const ps=of(drain(T),'ps','trA').pop(),hr=ps&&ps.m.p.find(r=>r.id==='H'),mine=V.getSNL();
+    ok('the host’s pose carries the host’s own snail ('+(hr?JSON.stringify(hr.sl):'none')+')',!!hr&&(mine.x!=null?Array.isArray(hr.sl)&&Math.abs(hr.sl[0]-mine.x)<1:hr.sl===0));
+    send('trA',{t:'po',p:{x:P().x+8,y:P().y,z:P().z,yaw:0,pitch:0,d:'over',sn:0,sw:0,h:0,hp:20,dead:0,rd:0,sl:[sx,sy,sz,0]}});step(2);
+    send('trA',{t:'bye'});drain(T);
+    ok('a guest who leaves takes their snail with them',!V.entities.some(e=>e.t==='netsnail'&&!e.dead));
+    V.netTrJoin('trA');send('trA',{t:'hi',v:V.NET_V,gv:V.GAME_VERSION,name:'Kim'});drain(T);}
   send('trA',{t:'bye'});L=drain(T);
   ok('a guest who leaves is gone, and the others hear it ('+[...V.NET.peers.values()].map(p=>p.name+'@'+p.tr).join(' ')+' | '+L.map(x=>x.to+':'+x.m.t).join(' ')+')',V.NET.peers.size===1&&of(L,'pl','trC').length===1);
   V.netStop('test');L=drain(T);
@@ -288,6 +303,14 @@ boot.run(async()=>{
     const n0=V.getNUKES().length;send('HOST',{t:'fx',k:'mega',x:x0+3000,y:40,z:z0,r:58,d:'over'});
     ok('it goes off: this screen carves the same crater (it joins this world’s nuke list) and the falling copy goes',V.getNUKES().length===n0+1&&V.getNUKES().some(n=>n.x===Math.round(x0+3000))&&ab.dead);
     ok('...without sending anything back',!of(drain(T2),'fx').length);}
+  /* the host's snail, here */
+  {V.GR.snail=true;const sx=P().x+5,sy=P().y,sz=P().z,hp=V.NET.peers.get('H').pose;
+    send('HOST',{t:'ps',p:[{id:'H',...hp,sl:[sx,sy,sz,0.4]}]});step(3);
+    const cs=V.entities.find(e=>e.t==='netsnail'&&!e.dead);
+    ok('the host’s snail shows here as a copy with the host’s name on it',!!cs&&cs.NP.name==='Host');
+    V.P.hp=20;V.P.x=cs.x;V.P.y=cs.y;V.P.z=cs.z;V.P.vx=V.P.vy=V.P.vz=0;step(4);
+    ok('...standing in it is harmless here',!V.P.dead&&V.P.hp===20);
+    V.GR.snail=false;step(2);ok('the snail rule off: no copies',!V.entities.some(e=>e.t==='netsnail'&&!e.dead));V.GR.snail=true;}
   /* the host leaves */
   send('HOST',{t:'bye',why:'The host closed the world'});await sleep(20);
   ok('the host leaving sends the guest to the title, the link off',!V.playing&&!V.NET.on);

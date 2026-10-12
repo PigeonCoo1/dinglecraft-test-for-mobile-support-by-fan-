@@ -194,6 +194,17 @@ check('the guest runs no Purgatory cast of its own while the host is there',(awa
 await shot(G,'guest_purgatory');
 await H.ev(`__hog.hurtT=0;__vox.hurtMob(__hog,999,0,0);__vox.GR.freezeMobs=false;__vox.setDim('over',...__ret);__vox.P.mode='s';stp(30);`);await G.ev(`__vox.P.mode='s';__vox.setDim('over',__vox.P.spawn[0],__vox.P.spawn[1],__vox.P.spawn[2]);stp(30);`);await both(20,80);
 
+/* ===== the Eternal Snail: one each, everybody sees everybody's ===== */
+{
+  await H.ev(`__vox.GR.snail=true;__vox.snailReset();const P=__vox.P;spawnSnail(P.x+5,P.y+1,P.z+2);stp(2);`);await both(4,80);
+  await G.ev(`__vox.snailReset();const P=__vox.P;spawnSnail(P.x-5,P.y+1,P.z-2);stp(2);`);await both(8,80);
+  const gs=await G.ev(`return __vox.entities.filter(e=>e.t==='netsnail'&&!e.dead).map(e=>e.NP.name)`),hs=await H.ev(`return __vox.entities.filter(e=>e.t==='netsnail'&&!e.dead).map(e=>e.NP.name)`);
+  check('two players, two snails: each screen hunts its own player and shows the other one’s snail',gs.length===1&&hs.length===1&&gs[0]===HS.name&&hs[0]===J.name,{gs,hs});
+  await G.ev(`const s=__vox.entities.find(e=>e.t==='netsnail');const P=__vox.P;P.yaw=Math.atan2(-(s.x-P.x),-(s.z-P.z));P.pitch=-0.2;stp(1);`);await shot(G,'guest_sees_host_snail');
+  await H.ev(`__vox.GR.snail=false;__vox.snailReset();stp(2);`);   /* the rule off for the rest of the run (it syncs to the guest), or a fresh snail is introduced at once */
+  await G.ev(`__vox.snailReset();stp(2);`);await both(30,60);
+  check('...and a snail that is gone is gone everywhere',(await G.ev(`return __vox.entities.some(e=>e.t==='netsnail'&&!e.dead)`))===false&&(await H.ev(`return __vox.entities.some(e=>e.t==='netsnail'&&!e.dead)`))===false);}
+
 /* ===== Malgorath together: the host's fight on the guest's screen ===== */
 {const tp=(C,r,th)=>C.ev(`const F=__vox.mgF(),x=1000.5+Math.cos(${th})*${r},z=1000.5+Math.sin(${th})*${r};__vox.forceChunksNear(x,z);__vox.forceChunksNear(1000,1000);
     const P=__vox.P;P.x=Math.floor(x)+0.5;P.z=Math.floor(z)+0.5;P.y=F;P.vx=P.vy=P.vz=0;P.fallD=0;P.yaw=Math.atan2(-(1000.5-P.x),-(1000.5-P.z));P.pitch=0.35;stp(30);`);
