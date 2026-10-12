@@ -46,7 +46,7 @@ function snapshot(name){
   for(const [k,b] of blockEnts)be[k]=b;
   const ents=[];
   for(const e of entities){
-    if(e.dead)continue;
+    if(e.dead||e.np||e.netp)continue;   /* multiplayer puppets and bodies are never saved */
     if(e.t==='mob'&&MOBT[e.mt].pmob){mpSnapMob(e,ents);continue;}
     if(e.t==='mob'&&MOBT[e.mt].mg)continue;
     if(e.t==='mob'&&!e.bot&&!e.netp&&!e.np){

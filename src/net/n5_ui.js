@@ -1,4 +1,4 @@
-/* ---- PART 58: n4_ui.js ---- */
+/* ---- PART 58: n5_ui.js ---- */
 /* the Multiplayer panel (title screen: join; pause menu: open your world, or see who is here), the corner badge, and the hooks
    the rest of the game calls. The panel is rebuilt from NET whenever something changes (netUiSync). */
 let netpOpen=false;
@@ -86,5 +86,5 @@ function netPlayersBox(add,host){
 const NTEX={NET,NET_V,NET_MAX,NET_CHUNK,netOn,netHost,netClient,netPuppetMobs,netCode,netCodeNorm,netNameFix,netLook,netSaveFields,netLoad,
   netMemTransport,netBcTransport,netPeerTransport,netSendTr,netTrMsg,netTrJoin,netTrLeave,netErrText,netHostStart,netJoin,netStop,netKick,netSetPvp,
   netWorldFor,netRecv,netEditOut,netApplyEdit,netBeScan,netBeIn,netMyPose,netBodiesSync,netEntsOut,netEntsIn,netTick,netBodies,netTabRows,
-  netKillXP,openNetPanel,closeNetPanel,netUiSync,getNetp:()=>netpOpen,getSeed:()=>SEED,WORLD,enterGame,
+  netKillXP,openNetPanel,closeNetPanel,netUiSync,getNetp:()=>netpOpen,NET_VEH,netVehSpawn,netRideState,netRideMake,netRideReq,netDoing,netMarketIn,netBrag,hitCar,netTerrIn,netTerrOthers,netCineIn,netShotIn,getSeed:()=>SEED,WORLD,enterGame,
   chunkEditAt:(pf,x,y,z)=>{const cx=Math.floor(x/CH),cz=Math.floor(z/CH),m=chunkEdits.get(pf+cx+','+cz);return m?m.get((x-cx*CH)+','+y+','+(z-cz*CH)):undefined;}};

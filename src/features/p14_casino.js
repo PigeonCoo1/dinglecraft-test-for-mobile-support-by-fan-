@@ -62,7 +62,7 @@ function casSpin(bet){
         win>bet?'Winner! +'+win.toFixed(2)+'\u25c6':
         win>0?'Money back. +'+win.toFixed(2)+'\u25c6':
         'The house thanks you.'};
-  if(win>=bet*10)playS('jackpot');
+  if(win>=bet*10){playS('jackpot');netBrag('hit the JACKPOT at the slots (+'+win.toFixed(2)+'\u25c6)');}
   else if(win>bet)playS('cash');
   else if(win>0)playS('blip');
   else playS('lose');
@@ -125,7 +125,7 @@ function bjDeal(bet){
   if(pv===21){
     const dv=bjVal(CASBJ.dh);
     if(dv===21){P.stox.bal+=bet;CASBJ.msg='Both blackjack \u2014 push!';playS('blip');}
-    else{const pay=bet*2.5;P.stox.bal+=pay;CASBJ.msg='BLACKJACK! +'+pay.toFixed(2)+'\u25c6';playS('jackpot');}
+    else{const pay=bet*2.5;P.stox.bal+=pay;CASBJ.msg='BLACKJACK! +'+pay.toFixed(2)+'\u25c6';playS('jackpot');netBrag('got BLACKJACK (+'+pay.toFixed(2)+'\u25c6)');}
     CASBJ.phase='done';
   }else CASBJ.msg='Hit, stand or double.';
   renderMoney();

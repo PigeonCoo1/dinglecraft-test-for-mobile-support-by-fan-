@@ -34,9 +34,9 @@ const of=(L,t,to)=>L.filter(x=>x.m.t===t&&(to==null||x.to===to));
 boot.run(async()=>{
   /* ===== 1. statics ===== */
   const order=fs.readFileSync(SRC+'ORDER.txt','utf8');
-  const files=['n0_contract.js','n1_link.js','n2_sync.js','n3_world.js','n4_ui.js'];
-  ok('PART 58 is five files in src/net, each with its marker, listed right before Malgorath',files.every(f=>fs.readFileSync(SRC+'net/'+f,'utf8').startsWith('/* ---- PART 58: '+f+' ---- */\n'))&&
-    order.indexOf('net/n4_ui.js\n')<order.indexOf('\nmalgorath/m0_contract.js\n')&&order.indexOf('net/n0_contract.js')>order.indexOf('ai_players/mob_helpers.js'));
+  const files=['n0_contract.js','n1_link.js','n2_sync.js','n3_world.js','n4_share.js','n5_ui.js'];
+  ok('PART 58 is six files in src/net, each with its marker, listed right before Malgorath',files.every(f=>fs.readFileSync(SRC+'net/'+f,'utf8').startsWith('/* ---- PART 58: '+f+' ---- */\n'))&&
+    order.indexOf('net/n5_ui.js\n')<order.indexOf('\nmalgorath/m0_contract.js\n')&&order.indexOf('net/n0_contract.js')>order.indexOf('ai_players/mob_helpers.js'));
   const VEN=path.join(boot.ROOT,'assets','vendor');
   const pj=fs.readFileSync(path.join(VEN,'peerjs.1.5.4.min.js'),'utf8'),HH=fs.readFileSync(boot.BUILD+'head.html','utf8');
   ok('PeerJS 1.5.4 is vendored with its MIT licence, inlined once with the licence before it',fs.readFileSync(path.join(VEN,'peerjs.LICENSE'),'utf8').includes('The MIT License')&&
@@ -115,6 +115,30 @@ boot.run(async()=>{
   send('trA',{t:'tk',n:dr[0]});L=drain(T);
   ok('a guest’s pickup: the drop is gone here, the apples go to that guest',d.dead&&of(L,'gv','trA').some(x=>x.m.st.id===V.IT.APPLE&&x.m.st.count===3));
   send('trC',{t:'tk',n:dr[0]});ok('...and nobody else gets it again',of(drain(T),'gv','trC').length===0);
+  /* vehicles and dragons: the host's world owns them, a guest borrows them */
+  V.spawnCar(gp.x+3,gp.y,gp.z+2,0.5);const car=V.entities[V.entities.length-1];car.hp=21;
+  step(5);L=drain(T);const vr=of(L,'en','trA').pop().m.v.find(r=>r[1]==='car');
+  ok('the host streams its parked car to the guest',!!vr&&vr[0]===car.nid&&vr[6]===21);
+  send('trA',{t:'hit',n:car.nid,d:5});ok('a guest’s hit dents the host’s real car',car.hp===16);
+  send('trA',{t:'rq',n:car.nid});L=drain(T);const own=of(L,'own','trA')[0];
+  ok('a guest climbs in: the car leaves the host’s world and goes to the guest, as it was',car.dead&&!!own&&own.m.v.t==='car'&&own.m.v.hp===16&&Math.abs(own.m.v.yaw-0.5)<1e-6);
+  send('trC',{t:'rq',n:car.nid});ok('...nobody else can have it meanwhile',of(drain(T),'own','trC').some(x=>x.m.v===null));
+  send('trA',{t:'po',p:{x:gp.x+8,y:gp.y+0.45,z:gp.z,yaw:0,pitch:0,d:'over',sn:0,sw:0,h:0,hp:20,dead:0,rd:'car',ro:1,ry:1.2}});step(3);
+  ok('the host sees the guest driving it (a ride puppet under the guest’s body)',!!gA.rideE&&gA.rideE.t==='car'&&gA.rideE.np===1&&gA.rideE.rp===1);
+  send('trA',{t:'pk',v:{k:'veh',t:'car',x:gp.x+8,y:gp.y,z:gp.z,yaw:1.2,hp:16},d:'over'});
+  send('trA',{t:'po',p:{x:gp.x+9,y:gp.y,z:gp.z,yaw:0,pitch:0,d:'over',sn:0,sw:0,h:0,hp:20,dead:0,rd:0,ro:0}});step(3);
+  const back=V.entities.filter(e=>e.t==='car'&&!e.dead&&!e.np);
+  ok('climbing out parks it back in the host’s world where they left it (and the ride puppet goes)',back.length===1&&Math.abs(back[0].x-(gp.x+8))<0.5&&back[0].hp===16&&!gA.rideE);
+  V.spawnMob('dragon',gp.x+2,gp.y+3,gp.z);const dg=V.entities[V.entities.length-1];dg.angry=false;dg.tame=false;dg.fed=0;step(5);L=drain(T);
+  const dgr=of(L,'en','trA').pop().m.m.find(r=>r[1]==='dragon');
+  for(let i=0;i<5;i++)send('trA',{t:'fd',n:dgr[0]});L=drain(T);
+  ok('five steaks from a guest tame the host’s dragon (and the guest is told)',dg.tame===true&&of(L,'tst','trA').some(x=>/bows/.test(x.m.txt)));
+  step(5);L=drain(T);ok('...and the stream says it is tame now',of(L,'en','trA').pop().m.m.find(r=>r[0]===dgr[0])[9]===1);
+  send('trA',{t:'rq',n:dgr[0]});L=drain(T);ok('a guest can borrow a tame dragon like a car',dg.dead&&of(L,'own','trA').some(x=>x.m.v&&x.m.v.k==='mob'&&x.m.v.mt==='dragon'&&x.m.v.tame===1));
+  /* the market rides on the time message */
+  step(30);L=drain(T);ok('the host’s stock prices go to the guests',of(L,'tm','trA').some(x=>x.m.mk&&Object.keys(x.m.mk).length>3));
+  /* what they are doing */
+  V.openModal('inv');ok('doings: the inventory is a 🎒 on the name tag',V.netDoing()==='\u{1F392}');V.closeModal();ok('...nothing open, nothing on the tag',V.netDoing()==='');
   /* PvP */
   P().hp=20;P().hurtT=0;send('trA',{t:'pv',to:'H',d:4,kx:1,kz:0});
   ok('PvP: a guest hits the host',P().hp===16);
@@ -188,6 +212,42 @@ boot.run(async()=>{
   send('HOST',{t:'gv',st:{id:V.IT.APPLE,count:2}});ok('a pickup the host approved is in the inventory',V.P.inv.some(s=>s&&s.id===V.IT.APPLE&&s.count===2));
   send('HOST',{t:'xp',n:5});ok('XP from a kill flies in',V.entities.some(e=>e.t==='xp'&&!e.dead));
   send('HOST',{t:'tm',v:0.8,d:'over',pvp:false});ok('time and PvP follow the host',Math.abs(V.getTime()-0.8)<1e-6&&V.NET.pvp===false);
+  /* vehicles as a guest */
+  send('HOST',{t:'en',m:[],dr:[],b:[],v:[[91,'boat',P().x+3,P().y,P().z,0.3,6,0]]});
+  const pb=[...V.NET.pup.values()].find(e=>e.t==='boat');
+  ok('the host’s boat is a puppet here',!!pb&&pb.np===1);
+  drain(T2);V.hitCar(pb,2);L=drain(T2);ok('hitting it asks the host, nothing breaks here',of(L,'hit','HOST').some(x=>x.m.n===91)&&!pb.dead);
+  V.netRideReq(pb);L=drain(T2);ok('climbing in asks the host for it',of(L,'rq','HOST').some(x=>x.m.n===91));
+  send('HOST',{t:'own',n:91,v:{k:'veh',t:'boat',x:P().x+3,y:P().y,z:P().z,yaw:0.3,hp:6}});
+  ok('the host says yes: a real boat here, the guest in it, the puppet gone',V.P.ride&&V.P.ride.t==='boat'&&V.P.ride.netOwn===1&&!V.P.ride.np&&pb.dead);
+  step(3);L=drain(T2);ok('the guest’s pose says it is riding its own boat',of(L,'po','HOST').some(x=>x.m.p.rd==='boat'&&x.m.p.ro===1));
+  V.P.ride=null;step(2);L=drain(T2);
+  ok('climbing out parks it back at the host, gone from here',of(L,'pk','HOST').some(x=>x.m.v.t==='boat')&&!V.entities.some(e=>e.t==='boat'&&!e.dead&&!e.np));
+  V.spawnCar(P().x+2,P().y,P().z,0);step(2);L=drain(T2);
+  ok('a car the guest places goes to the host’s world',of(L,'pk','HOST').some(x=>x.m.v.t==='car')&&!V.entities.some(e=>e.t==='car'&&!e.dead&&!e.np));
+  send('HOST',{t:'tm',v:0.5,d:'over',pvp:true,mk:Object.fromEntries(V.STOX.map(s=>[s,123.5]))});
+  ok('the market is the host’s market',V.STOX.every(s=>V.getMKT().p[s]===123.5));
+  /* DEEP DIRT 2D together, the cinema together */
+  {const x0=Math.floor(P().x)+3,y0=Math.floor(P().y),z0=Math.floor(P().z);V.openTerrAt(x0,y0,z0);step(2);
+    const k=V.getTG().on?[...V.blockEnts.keys()].find(k2=>V.blockEnts.get(k2).t==='terr'||k2.endsWith(x0+','+y0+','+z0)):null;
+    const tx=5,ty=5;V.terrPoke(tx,ty,3);
+    send('HOST',{t:'tg',k,x:tx,y:ty,v:0});
+    ok('DEEP DIRT 2D: a friend’s dig on the same rig empties the tile here',V.terrTile(tx,ty)===0);
+    send('HOST',{t:'tg',k:'nope',x:tx,y:ty,v:3});ok('...a different rig’s dig does not',V.terrTile(tx,ty)===0);
+    V.NET.peers.get('H').pose.tg=[k,10,20,1];ok('...and the friend’s digger is drawn on this screen',V.netTerrOthers().some(o=>o.name==='Host'&&o.px===10));
+    drain(T2);V.terrPoke(6,6,3);
+    V.closeTerr();step(1);}
+  V.openCine();drain(T2);
+  send('HOST',{t:'cn',m:2,x:P().x+2,z:P().z,d:'over',from:'Host'});
+  ok('the cinema: a friend picking a film starts it for everyone in the menu nearby',V.getCIN().mode==='play'&&V.getCIN().m===2);
+  ok('...without sending it back round',!of(drain(T2),'cn').length);
+  V.closeCine();
+  /* shots everybody sees */
+  drain(T2);
+  {const n0=V.entities.length;send('HOST',{t:'sh',k:'a',p:[P().x+1,P().y+1.5,P().z,0,0,-20],g:0,d:'over'});const a=V.entities[V.entities.length-1];
+    ok('a friend’s arrow flies here too, as a harmless copy, and is not sent back',V.entities.length===n0+1&&a.t==='arrow'&&a.owner==='fx'&&a.fx===1&&!of(drain(T2),'sh').length);
+    const hp0=V.P.hp;V.P.hurtT=0;a.x=P().x;a.y=P().y+1;a.z=P().z;a.vx=0;a.vz=0.1;a.vy=0;a.age=1;step(2);
+    ok('...it never hurts anyone here (the real hit comes as damage)',V.P.hp===hp0);}
   /* the host leaves */
   send('HOST',{t:'bye',why:'The host closed the world'});await sleep(20);
   ok('the host leaving sends the guest to the title, the link off',!V.playing&&!V.NET.on);

@@ -36,6 +36,7 @@ function spawnArrow(x,y,z,vx,vy,vz,owner,dmg){
   const m=new THREE.Mesh(arrowGeo,arrowMat);
   scene.add(m);
   entities.push({t:'arrow',x,y,z,vx,vy,vz,owner,dmg,age:0,mesh:m});
+  if(owner==='p')netShotOut('a',x,y,z,vx,vy,vz);   /* everybody sees it fly (PART 58) */
 }
 function updateArrow(e,dt){
   e.age+=dt;
@@ -44,13 +45,13 @@ function updateArrow(e,dt){
   const nx=e.x+e.vx*dt,ny=e.y+e.vy*dt,nz=e.z+e.vz*dt;
   /* mob / player hits */
   for(const m of entities){
-    if(m.t!=='mob'||m.dead)continue;
+    if(m.t!=='mob'||m.dead||e.owner==='fx')continue;   /* fx: a friend's arrow, shown here only (PART 58) */
     if(e.owner!=='p'&&m.hostile)continue;
     if(nx>m.x-m.hw-0.1&&nx<m.x+m.hw+0.1&&ny>m.y-0.1&&ny<m.y+m.h+0.1&&nz>m.z-m.hw-0.1&&nz<m.z+m.hw+0.1){
       HIT_BY=e.owner==='p'?'Dan':(e.owner==='m'?'Skeleton':e.owner);HIT_HOW='arrow';hurtMob(m,e.dmg,e.vx,e.vz);HIT_BY=null;HIT_HOW=null;removeEnt(e);return;
     }
   }
-  if(e.owner!=='p'&&!P.dead&&e.age>0.1){
+  if(e.owner!=='p'&&e.owner!=='fx'&&!P.dead&&e.age>0.1){
     if(nx>P.x-P.hw-0.1&&nx<P.x+P.hw+0.1&&ny>P.y&&ny<P.y+P.h+0.1&&nz>P.z-P.hw-0.1&&nz<P.z+P.hw+0.1){
       LASTDMG={by:e.owner==='m'?'Skeleton':(e.owner||null),how:'arrow',t:AG_T};damagePlayer(e.dmg,e.vx,e.vz);removeEnt(e);return;
     }

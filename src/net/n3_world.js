@@ -48,7 +48,9 @@ function netMyPose(){
   if(!P)return null;
   const st=P.inv&&P.inv[P.sel];
   return {x:+P.x.toFixed(2),y:+P.y.toFixed(2),z:+P.z.toFixed(2),yaw:+P.yaw.toFixed(3),pitch:+P.pitch.toFixed(3),d:DIM,
-    sn:P.sneak?1:0,sw:P.swing>0.3?1:0,h:st?st.id:0,hp:Math.round(P.hp),dead:P.dead?1:0,rd:P.ride?P.ride.t:0};
+    sn:P.sneak?1:0,sw:P.swing>0.3?1:0,h:st?st.id:0,hp:Math.round(P.hp),dead:P.dead?1:0,
+    rd:P.ride?(P.ride.t==='mob'?P.ride.mt:P.ride.t):0,ro:P.ride&&netClient()?1:0,ry:P.ride?+(P.ride.yaw||0).toFixed(3):0,   /* ro: a ride only this screen has (n4) */
+    ac:netDoing(),ht:P.cos&&P.cos.hat||0,tg:terrOpen&&TG.bek?[TG.bek,+TG.px.toFixed(2),+TG.py.toFixed(2),TG.dir]:0};
 }
 function netPosesOut(){
   const me=netMyPose();if(!me)return;
@@ -68,13 +70,15 @@ function netBodyMake(p){
   entities.push(e);p.body=e;
   return e;
 }
-function netBodyDrop(p){if(p&&p.body){removeEnt(p.body);p.body=null;}}
+function netBodyDrop(p){if(p&&p.body){removeEnt(p.body);p.body=null;}if(p&&p.rideE){if(!p.rideE.dead)removeEnt(p.rideE);p.rideE=null;p.rideKind=null;}}
 function netBodiesSync(){
   for(const p of NET.peers.values()){
     if(p.id===NET.me)continue;
     const q=p.pose,want=!!(p.ready&&q&&q.d===DIM&&!q.dead);
     if(p.body&&(p.body.dead||!want))netBodyDrop(p);
     if(want&&!p.body)netBodyMake(p);
+    netRidePupSync(p);netRidePupMove(p);
+    if(p.body)netBodyDress(p.body,q);
   }
 }
 function netBodyTick(e,dt){
@@ -97,19 +101,20 @@ function netEntsOut(){
   NET.byNid.clear();
   for(const p of NET.peers.values()){
     if(!p.ready||!p.pose||p.pose.d!==DIM)continue;
-    const px=p.pose.x,pz=p.pose.z,m=[],dr=[],b=[];
+    const px=p.pose.x,pz=p.pose.z,m=[],dr=[],b=[],v=[];
     for(const e of entities){
-      if(e.dead||Math.abs(e.x-px)>NET_RANGE||Math.abs(e.z-pz)>NET_RANGE)continue;
+      if(e.dead||e.np||Math.abs(e.x-px)>NET_RANGE||Math.abs(e.z-pz)>NET_RANGE)continue;
       if(e.t==='mob'){
         if(e.netp)continue;
         if(e.bot){if(e.A&&e.A.online&&!e.A.dead){const st=e.A.inv&&e.A.inv[e.A.sel];
           b.push([netNid(e),e.A.name,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+e.yaw.toFixed(2),+(e.pitch||0).toFixed(2),st?st.id:0,e.A.ctl&&e.A.ctl.sneak?1:0,e.A.swing>0.3?1:0]);}continue;}
-        const T=MOBT[e.mt];if(!T||T.mg||T.pmob)continue;
-        m.push([netNid(e),e.mt,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+e.yaw.toFixed(2),Math.round(e.hp),e.hurtT>0.3?1:0,e.name||0]);
+        const T=MOBT[e.mt];if(!T||T.mg)continue;
+        m.push([netNid(e),e.mt,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+e.yaw.toFixed(2),Math.round(e.hp),e.hurtT>0.3?1:0,e.name||0,e.tame?1:0]);
       }
+      else if(NET_VEH[e.t])v.push([netNid(e),e.t,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+(e.yaw||0).toFixed(3),Math.round(e.hp||0),P.ride===e?1:0]);
       else if(e.t==='drop'&&e.st)dr.push([netNid(e),e.st.id,e.st.count,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),e.st.dur!=null?e.st.dur:-1]);
     }
-    netSendTr(p.tr,{t:'en',m,dr,b});
+    netSendTr(p.tr,{t:'en',m,dr,b,v});
   }
 }
 function netPupClear(){for(const e of NET.pup.values())if(!e.dead)removeEnt(e);NET.pup.clear();}
@@ -119,16 +124,16 @@ function netEntsIn(msg){
   if(!netPuppetMobs()){if(NET.pup.size)netPupClear();return;}
   const seen=new Set();
   for(const r of (msg.m||[])){
-    const [nid,mt,x,y,z,yaw,hp,hurt,name]=r,key='m'+nid;seen.add(key);
+    const [nid,mt,x,y,z,yaw,hp,hurt,name,tame]=r,key='m'+nid;seen.add(key);
     let e=NET.pup.get(key);
     if(e&&(e.dead||e.mt!==mt)){if(!e.dead)removeEnt(e);NET.pup.delete(key);e=null;}
     if(!e){
-      if(!MOBT[mt]||MOBT[mt].mg||MOBT[mt].pmob)continue;
+      if(!MOBT[mt]||MOBT[mt].mg)continue;
       const n=entities.length;NET.applying++;try{spawnMob(mt,x,y,z);}finally{NET.applying--;}
       const c=entities[entities.length-1];if(entities.length<=n||!c||c.t!=='mob'||c.mt!==mt)continue;
       e=netPupAdopt(key,c,nid);e.yaw=yaw;
     }
-    e.tx=x;e.ty=y;e.tz=z;e.tyaw=yaw;e.hp=hp;if(name)e.name=name;
+    e.tx=x;e.ty=y;e.tz=z;e.tyaw=yaw;e.hp=hp;if(name)e.name=name;e.tame=!!tame;
     if(hurt&&e.hurtT<=0.2){e.hurtT=0.4;for(const mm of e.mats)mm.emissive&&mm.emissive.setRGB(0.45,0,0);}
   }
   for(const r of (msg.dr||[])){
@@ -139,6 +144,13 @@ function netEntsIn(msg){
     const n=entities.length;spawnDrop(x,y,z,{id,count,...(dur>=0?{dur}:{})},0,0,0);
     const c=entities[entities.length-1];if(entities.length<=n||!c||c.t!=='drop')continue;
     netPupAdopt(key,c,nid);
+  }
+  for(const r of (msg.v||[])){
+    const [nid,t,x,y,z,yaw,hp]=r,key='v'+nid;seen.add(key);
+    let e=NET.pup.get(key);
+    if(e&&(e.dead||e.t!==t)){if(!e.dead)removeEnt(e);NET.pup.delete(key);e=null;}
+    if(!e){const c=netVehSpawn(t,x,y,z,yaw);if(!c)continue;e=netPupAdopt(key,c,nid);}
+    e.tx=x;e.ty=y;e.tz=z;e.tyaw=yaw;e.hp=hp;
   }
   for(const r of (msg.b||[])){
     const [nid,name,x,y,z,yaw,pitch,held,sn,sw]=r,key='b'+nid;seen.add(key);
@@ -186,7 +198,9 @@ function netHitOut(e,dmg,kx,kz){
 }
 function netHitIn(p,m){
   const e=NET.byNid.get(m.n)||entities.find(q=>q.nid===m.n);
-  if(!e||e.dead||e.t!=='mob')return;
+  if(!e||e.dead)return;
+  if(NET_VEH[e.t]){hitCar(e,Math.min(+m.d||1,200));return;}
+  if(e.t!=='mob')return;
   const pb=HIT_BY,ph=HIT_HOW;HIT_BY=p.name;HIT_HOW=m.how||'melee';NET.hitFrom=p;
   try{hurtMob(e,Math.min(+m.d||1,200),+m.kx||0,+m.kz||0);}finally{HIT_BY=pb;HIT_HOW=ph;NET.hitFrom=null;}
 }
@@ -220,11 +234,12 @@ function netTick(dt){
   if(netHost()){
     if(now-NET.entT>=125){NET.entT=now;netEntsOut();}
     if(now-NET.timeT>=1000){NET.timeT=now;const g=JSON.stringify(GR),msg={t:'tm',v:+timeOfDay.toFixed(5),d:DIM,pvp:NET.pvp};
-      if(g!==NET.grLast){NET.grLast=g;msg.gr=GR;}netBcast(msg);}
+      if(g!==NET.grLast){NET.grLast=g;msg.gr=GR;}msg.mk=netMarketOut();netBcast(msg);}
   }else{
     if(now-NET.stT>=15000){NET.stT=now;netStateOut();}
+    netParkTick();
     /* the host's mobs are the only mobs here: anything this screen spawned on its own (a village's aliens...) goes */
-    if(netPuppetMobs()){for(const e of entities)if(e.t==='mob'&&!e.dead&&!e.np&&!e.netp&&!e.bot&&!MOBT[e.mt].mg&&!MOBT[e.mt].pmob)removeEnt(e);}   /* Malgorath's own stay */
+    if(netPuppetMobs()){for(const e of entities)if(e.t==='mob'&&!e.dead&&!e.np&&!e.netp&&!e.bot&&!e.netOwn&&!MOBT[e.mt].mg)removeEnt(e);}   /* Malgorath's own stay */
     else if(NET.pup.size)netPupClear();
   }
 }

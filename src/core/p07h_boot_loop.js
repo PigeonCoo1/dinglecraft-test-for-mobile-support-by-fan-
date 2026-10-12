@@ -57,7 +57,7 @@ function frame(t){
     }
     updatePlayerMesh(dt);
     updateDisaster(paused?0:dt);
-    if(playing&&!paused)updateStocks(dt);
+    if(playing&&!paused&&!netClient())updateStocks(dt);   /* a guest trades on the host's market (PART 58) */
     trickFrame(paused?0:dt);
     if(playing&&(!paused||NET.on)){if(DIM==='over'){processVillages(dt);processParks(dt);processWD(dt);processCells(dt);tickTitans(dt);processRoosts(dt);tickMalg(dt);tickCompass(dt);}tickSpawners(dt);updateBossBar();updateXPHud();tickFlow(dt);updateArmorHud();tickDragons(dt);tickTrail(dt);tickBPass(dt);updateCut(dt);tickWin(dt);tickNuke(dt);tickMega(dt);tickTerr(dt);tickXray(dt);tickGadgets(dt);tickBig(dt);tickDisp(dt);tickLawns(dt);tickCine(dt);tickSnail(dt);tickScare(dt);tickHorror(dt);processNether(dt);processAether(dt);processPuppet(dt);tickPortal(dt);tickBots(dt);tickPCompass(dt);processCrea(dt);}
     const hideCur=playing&&!paused&&P&&!P.dead&&!modalOpen();

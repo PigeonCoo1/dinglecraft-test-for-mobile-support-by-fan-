@@ -90,7 +90,8 @@ Grep for names with `tools/grep-safe.sh`.
 
 - **The host is the truth.** A guest never saves the host's world (`saveToStorage` refuses) and never runs its own mobs
   while it stands in the host's dimension (`netPuppetMobs`): anything it spawns there by itself is removed in `netTick`.
-  Puppet Purgatory and Malgorath are the exceptions: each player's own game runs them.
+  Puppet Purgatory's cast streams like any mob (`mpMobMesh` builds the puppets); Malgorath is the exception: each player's
+  own game runs his fight (he spawns only through `mgSpawnBoss`, and M1 owns the Bite's block writes).
 - **Writes from the wire set `NET.applying`.** Anything that calls `setBlock` (or another hook that sends) while applying
   a remote message must keep it set, or the edit bounces back and forth forever.
 - **Puppets and bodies are `t:'mob'` but not mobs.** Code that walks `entities` for mobs must skip `e.np` (a host mob

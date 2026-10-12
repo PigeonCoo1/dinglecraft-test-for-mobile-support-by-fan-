@@ -66,6 +66,7 @@ function netHello(trId,m){
 }
 function netPeerGone(p,why){
   if(!NET.peers.has(p.id))return;
+  netRideOrphan(p);
   NET.peers.delete(p.id);
   netBodyDrop(p);
   if(netHost()){netBcast({t:'pl',id:p.id});if(p.tr!=null)NET.byTr.delete(p.tr);}
@@ -168,9 +169,15 @@ function netRecv(trId,m){
         else{const q=NET.peers.get(m.to);if(q)netSendTr(q.tr,{t:'dmg',d:+m.d,kx:+m.kx,kz:+m.kz,by:p.name,how:m.how});}
         break;
       case 'tk':netTakeIn(p,m.n);break;
+      case 'rq':netRideRq(p,m.n);break;
+      case 'pk':netParkIn(p,m);break;
+      case 'fd':netFeedIn(p,m.n);break;
       case 'st':if(m.pl&&typeof m.pl==='object')NET.guests[p.name]={player:m.pl,dim:m.d||'over'};break;
       case 'dd':sysMsg(m.txt);netBcast({t:'dd',txt:m.txt},p.id);break;
       case 'fx':netFxIn(m);netBcast(m,p.id);break;
+      case 'tg':netTerrIn(m);netBcast(m,p.id);break;
+      case 'sh':netShotIn(m);netBcast(m,p.id);break;
+      case 'cn':netCineIn(m);netBcast(m,p.id);break;
       case 'bye':if(NET.tr)NET.tr.drop(trId);netPeerGone(p,'left');break;
     }
     return;
@@ -189,12 +196,17 @@ function netRecv(trId,m){
     case 'dmg':netHurtMe(+m.d,+m.kx,+m.kz,m.by,m.how);break;
     case 'gv':if(m.st&&m.st.id){const st={...m.st},before=st.count,left=invAddTo(P.inv,st);if(left>0)spawnDrop(P.x,P.y+0.5,P.z,{...m.st,count:left},0,1,0);if(left<before)playS('pop');redrawHotbar();}break;
     case 'xp':if(+m.n>0)spawnXP(P.x,P.y+1.2,P.z,+m.n);break;
+    case 'own':netOwnIn(m);break;
+    case 'tst':if(m.txt)showToast(''+m.txt);break;
     case 'tm':if(m.v!=null&&Math.abs(((+m.v-timeOfDay)%1+1.5)%1-0.5)>0.002)timeOfDay=+m.v;
-      if(m.d)NET.hostDim=m.d;if(m.pvp!=null)NET.pvp=!!m.pvp;
+      if(m.d)NET.hostDim=m.d;if(m.pvp!=null)NET.pvp=!!m.pvp;if(m.mk)netMarketIn(m.mk);
       if(m.gr&&typeof m.gr==='object'){const keep=GR.bots;Object.assign(GR,m.gr);GR.bots=keep;if(typeof grApplyUI==='function')grApplyUI();}
       break;
     case 'dd':sysMsg(m.txt);break;
     case 'fx':netFxIn(m);break;
+    case 'tg':netTerrIn(m);break;
+    case 'sh':netShotIn(m);break;
+    case 'cn':netCineIn(m);break;
     case 'bye':netLost(m.why||'The host closed the world');break;
   }
 }

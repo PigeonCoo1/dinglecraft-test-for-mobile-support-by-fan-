@@ -289,6 +289,7 @@ function doUse(dt){
   if(rEdge&&!P.ride){
     const ch=pickCar(e[0],e[1],e[2],l[0],l[1],l[2],3.5);
     if(ch&&(!hit||ch.t<hit.t)){
+      if(ch.e.np){if(!ch.e.rp)netRideReq(ch.e);rEdge=false;return;}   /* the host's vehicle: ask for it (PART 58) */
       P.ride=ch.e;P.ride.spd=P.ride.spd||0;
       P.yaw=ch.e.yaw;P.pitch*=0.3; /* hop on facing forward */
       rEdge=false;playS('place');return;
@@ -346,6 +347,7 @@ function doUse(dt){
     const tg=pickMob(e0[0],e0[1],e0[2],d0[0],d0[1],d0[2],3.6);
     if(tg&&(tg.e.mt==='dragon')){
       const dr=tg.e;
+      if(dr.np){if(!dr.rp)netDragonUse(dr,st);rEdge=false;P.useT=0.3;return;}   /* the host's dragon (PART 58) */
       if(st&&st.id===IT.STEAK&&!dr.angry){
         rEdge=false;
         if(P.mode!=='c'){st.count--;if(st.count<=0)P.inv[P.sel]=null;redrawHotbar();}

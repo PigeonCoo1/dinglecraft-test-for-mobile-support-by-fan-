@@ -46,7 +46,10 @@ const STEP=`window.__T=window.__T||700000;window.stp=n=>{for(let i=0;i<(n||1);i+
 await H.ev(STEP);await G.ev(STEP);
 /* both games run a few frames, then the wire gets a moment */
 const both=async(n,ms)=>{for(let i=0;i<(n||1);i++){await H.ev('stp(1)');await G.ev('stp(1)');}await sleep(ms==null?60:ms);};
-const shot=async(C,name)=>{const f=path.join(SH,String(++shotN).padStart(2,'0')+'_'+name+'.jpg');await C.shot(f);return f;};
+/* a screenshot that never comes back (a renderer that cannot make a frame) must not hang the rig: 60 s, then on */
+const shot=async(C,name)=>{const f=path.join(SH,String(++shotN).padStart(2,'0')+'_'+name+'.jpg');
+  await C.send('Page.bringToFront');   /* headless Chrome draws no frames for a tab behind another: no screenshot either */
+  const r=await Promise.race([C.shot(f).then(()=>'ok'),sleep(60000).then(()=>'timeout')]);if(r!=='ok')console.log('shot timed out: '+name);return f;};
 const S=JSON.stringify;
 
 /* ===== the host opens a world ===== */
@@ -154,6 +157,39 @@ check('the corner badge shows the room on both screens',(await H.ev(`return docu
 await H.ev(`openNetPanel();`);await sleep(200);await shot(H,'host_panel');
 check('the host’s Multiplayer panel shows the code and the guest with a Remove button',(await H.ev(`const t=document.getElementById('net_body').textContent;return t.includes('${RC}')&&t.includes(${S(J.name)})&&t.includes('Remove')`))===true);
 await H.ev(`closeNetPanel();resumeGame&&0;`);
+
+/* ===== vehicles, looks and doings ===== */
+await H.ev(`const p=__vox.NET.peers.get('g1').pose;__vox.spawnCar(p.x+2.5,p.y,p.z,0);window.__car=__vox.entities[__vox.entities.length-1];stp(2);`);
+await both(6,80);
+const pc=await G.ev(`const c=[...__vox.NET.pup.values()].find(e=>e.t==='car');return c?{nid:c.nid}:null`);
+check('the host’s parked car shows up on the guest’s screen',!!pc);
+await G.ev(`const c=[...__vox.NET.pup.values()].find(e=>e.t==='car');__vox.netRideReq(c);`);await both(4,120);
+check('the guest climbs in: the host hands the car over, the guest drives it',(await G.ev(`return !!(__vox.P.ride&&__vox.P.ride.t==='car'&&__vox.P.ride.netOwn)`))===true&&(await H.ev(`return !!__car.dead`))===true);
+await G.ev(`__vox.P.ride.yaw=0.8;stp(1);`);await both(8,80);
+check('the host sees the guest sitting in the car (a ride puppet under the body)',(await H.ev(`const p=__vox.NET.peers.get('g1');return !!(p.rideE&&p.rideE.t==='car'&&!p.rideE.dead&&p.body)`))===true);
+await H.ev(`const P=__vox.P,b=__vox.NET.peers.get('g1').body;P.yaw=Math.atan2(-(b.x-P.x),-(b.z-P.z));P.pitch=-0.2;stp(2);`);await both(4);
+await shot(H,'host_sees_guest_driving');
+await G.ev(`__vox.P.ride=null;stp(1);`);await both(6,120);
+check('the guest climbs out: the car is parked back in the host’s world',(await H.ev(`return __vox.entities.filter(e=>e.t==='car'&&!e.dead&&!e.np).length`))===1&&(await H.ev(`const p=__vox.NET.peers.get('g1');return !p.rideE`))===true);
+await G.ev(`__vox.P.cos=__vox.P.cos||{};__vox.P.cos.hat='crown';openModal('inv');stp(1);`);await both(6,80);
+const tagInfo=await H.ev(`const b=__vox.NET.peers.get('g1').body;return {tag:b.M._tagTxt,hat:b.M._hat}`);
+check('the guest’s crown is on its body and its name tag says it is in its inventory 🎒',tagInfo.hat==='crown'&&/\u{1F392}/u.test(tagInfo.tag),tagInfo);
+await G.ev(`closeModal();stp(1);`);await both(3);
+await shot(H,'host_sees_guest_crown');
+
+/* ===== Puppet Purgatory together: the host's cast is the guest's cast ===== */
+await H.ev(`const P=__vox.P;window.__ret=[P.x,P.y,P.z];P.mode='c';__vox.setDim('puppet',0.5,63,-60);stp(40);`);   /* creative: a teleport into the air is no fall */await both(2);
+await G.ev(`__vox.P.mode='c';__vox.setDim('puppet',2.5,63,-60);stp(40);`);await both(20,80);
+{const a=await H.ev(`const p=__vox.NET.peers.get('g1');return {body:!!p.body,d:p.pose&&p.pose.d,dead:p.pose&&p.pose.dead,me:DIM}`),b=await G.ev(`const p=__vox.NET.peers.get('H');return {body:!!p.body,d:p.pose&&p.pose.d,me:DIM,dead:__vox.P.dead}`);
+  check('both in Puppet Purgatory, they see each other',a.body&&a.d==='puppet'&&b.body,{a,b});}
+await H.ev(`const p=__vox.NET.peers.get('g1').pose;__vox.GR.freezeMobs=true;__vox.spawnMob('pghog',p.x+4,p.y,p.z);window.__hog=__vox.entities[__vox.entities.length-1];stp(2);`);await both(8,80);
+check('the host’s Purgatory hog streams to the guest (built by the Purgatory cast’s own mesh)',(await G.ev(`return [...__vox.NET.pup.values()].some(e=>e.mt==='pghog'&&!e.dead)`))===true);
+const hh0=await H.ev(`return __hog.hp`);
+await G.ev(`const z=[...__vox.NET.pup.values()].find(e=>e.mt==='pghog');z.hurtT=0;__vox.hurtMob(z,5,1,0);stp(1);`);await both(3);
+check('the guest’s hit lands on the real hog ('+hh0+' -> '+(await H.ev(`return __hog.hp`))+')',(await H.ev(`return __hog.hp`))<hh0);
+check('the guest runs no Purgatory cast of its own while the host is there',(await G.ev(`return __vox.entities.filter(e=>e.t==='mob'&&!e.dead&&!e.np&&!e.netp&&__vox.MOBT[e.mt]&&__vox.MOBT[e.mt].pmob).length`))===0);
+await shot(G,'guest_purgatory');
+await H.ev(`__hog.hurtT=0;__vox.hurtMob(__hog,999,0,0);__vox.GR.freezeMobs=false;__vox.setDim('over',...__ret);__vox.P.mode='s';stp(30);`);await G.ev(`__vox.P.mode='s';__vox.setDim('over',__vox.P.spawn[0],__vox.P.spawn[1],__vox.P.spawn[2]);stp(30);`);await both(20,80);
 
 /* ===== the guest leaves and comes back with its things ===== */
 await G.ev(`__vox.P.inv[3]={id:__vox.IT.STEAK,count:9};redrawHotbar();`);

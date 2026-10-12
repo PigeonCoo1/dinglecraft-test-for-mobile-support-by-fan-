@@ -200,6 +200,7 @@ function spawnBullet(x,y,z,vx,vy,vz,dmg,grav){
   m.position.set(x,y,z);
   scene.add(m);
   entities.push({t:'blt',x,y,z,vx,vy,vz,dmg,grav,age:0,mesh:m});
+  netShotOut('b',x,y,z,vx,vy,vz,grav);   /* everybody sees it fly (PART 58) */
 }
 function updateBullet(e,dt){
   e.age+=dt;
@@ -209,7 +210,7 @@ function updateBullet(e,dt){
   for(let i=0;i<n;i++){
     const nx=e.x+e.vx*dt/n,ny=e.y+e.vy*dt/n,nz=e.z+e.vz*dt/n;
     for(const m of entities){
-      if((m.t!=='mob'&&m.t!=='car'&&m.t!=='skate'&&m.t!=='plane')||m.dead)continue;
+      if((m.t!=='mob'&&m.t!=='car'&&m.t!=='skate'&&m.t!=='plane')||m.dead||e.fx)continue;   /* fx: a friend's shot, shown here only */
       if(m===P.ride)continue;
       if(nx>m.x-m.hw-0.08&&nx<m.x+m.hw+0.08&&ny>m.y-0.08&&ny<m.y+m.h+0.08&&nz>m.z-m.hw-0.08&&nz<m.z+m.hw+0.08){
         if(m.t==='car'||m.t==='skate'||m.t==='plane')hitCar(m,e.dmg);
@@ -321,6 +322,7 @@ function spawnCar(x,y,z,yaw){
     yaw:yaw||0,onGround:false,hurtT:0,mesh:G,wheels,mats});
 }
 function hitCar(e,dmg){
+  if(e.np){if(!e.rp)netHitOut(e,dmg,0,0);return;}   /* the host's vehicle: the host decides (PART 58) */
   e.hp-=dmg;e.hurtT=0.4;
   for(const m of e.mats)m.emissive&&m.emissive.setRGB(0.45,0.05,0);
   playS('thud');

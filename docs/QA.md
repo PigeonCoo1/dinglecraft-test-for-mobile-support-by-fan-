@@ -70,8 +70,9 @@ Contact sheets are 5×6 tiles, so thirty frames can be judged at once.
   in the HUD pairs), and writes 5x6 sheets (its header has the options).
 - **Multiplayer (v7.1):** `node tools/qa/net/net_qa.mjs --launch --port <p>` opens two tabs, a host and a phone guest that
   joins through the 🌐 Multiplayer panel over the BroadcastChannel transport (same messages as PeerJS, no internet needed),
-  and checks the world, bodies, blocks, chests, chat, time, the host's mobs on the guest, drops, PvP, leaving and coming
-  back with your things, and the host closing the world.
+  and checks the world, bodies, blocks, chests, chat, time, the host's mobs on the guest, drops, PvP, a car handed over
+  and parked back, hats and name-tag doings, Puppet Purgatory's cast on the guest, leaving and coming back with your
+  things, and the host closing the world.
 - **Touch / mobile (v7.0):** `node tools/qa/ui/mobile_qa.mjs --launch --port <p>` emulates five screens (phone landscape and
   portrait, a small phone, a tablet, an Android phone) with touch on, photographs the title, play, the inventories, pause,
   Settings, chat, the ··· drawer, DEEP DIRT 2D, a car and the cinema, checks no pad button is off screen or overlaps another

@@ -59,6 +59,7 @@ function closeCine(){
 }
 function cineSelect(i){
   CIN.m=i;CIN.mode='play';CIN.t=0;
+  netCineOut(i);   /* everyone in this cinema's menu watches too (PART 58) */
 }
 function cineEnter(){
   if(CIN.mode!=='play')return;

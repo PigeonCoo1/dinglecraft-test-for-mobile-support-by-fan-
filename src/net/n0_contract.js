@@ -39,9 +39,9 @@ MOBT.netp={hp:20,hw:0.3,h:1.8,spd:1,pnc:1,body:'#d9822b',legc:'#34343a'};   /* a
 function netOn(){return NET.on;}
 function netHost(){return NET.on&&NET.role==='host';}
 function netClient(){return NET.on&&NET.role==='client';}
-/* a guest standing in the host's dimension shows the host's mobs instead of running its own. Puppet Purgatory is the exception:
-   its cast and bosses are a show run by each player's own game (as Malgorath's are, everywhere) */
-function netPuppetMobs(){return netClient()&&DIM===NET.hostDim&&DIM!=='puppet';}
+/* a guest standing in the host's dimension shows the host's mobs instead of running its own (Puppet Purgatory's cast included).
+   Malgorath is the exception: his fight is run by each player's own game */
+function netPuppetMobs(){return netClient()&&DIM===NET.hostDim;}
 function netCode(n){let s='';for(let i=0;i<(n||5);i++)s+=NET_ALPHA[(Math.random()*NET_ALPHA.length)|0];return s;}
 function netCodeNorm(s){return (''+(s||'')).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);}
 /* a name everybody can tell apart: never 'Dan' (the game maps 'Dan' to whoever is reading) and never a name already in the room */

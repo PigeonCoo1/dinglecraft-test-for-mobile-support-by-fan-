@@ -248,7 +248,7 @@ function tickTerr(dt){
         const need=base/(1+TG.pick*0.85);
         if(TG.mAcc>=need){
           TG.mAcc=0;
-          TG.t[tIdx(TG.mTx,TG.mTy)]=0;
+          TG.t[tIdx(TG.mTx,TG.mTy)]=0;netTerrEdit(TG.mTx,TG.mTy,0);   /* a friend on the same rig sees it (PART 58) */
           terrBurst(TG.mTx,TG.mTy,TCOL[tv],6);
           if(tv===4)TG.ore++;
           else if(tv===2)TG.binv[1]=(TG.binv[1]||0)+1;
@@ -266,7 +266,7 @@ function tickTerr(dt){
     if(!TG.craft){
       const overlaps=Math.abs(TG.mTx+0.5-TG.px)<0.9&&Math.abs(TG.mTy+0.5-TG.py)<1.4;
       if(reach&&!overlaps&&tAt(TG.mTx,TG.mTy)===0&&(TG.binv[TG.sel]||0)>0){
-        TG.t[tIdx(TG.mTx,TG.mTy)]=TG.sel;
+        TG.t[tIdx(TG.mTx,TG.mTy)]=TG.sel;netTerrEdit(TG.mTx,TG.mTy,TG.sel);
         TG.binv[TG.sel]--;
         terrBurst(TG.mTx,TG.mTy,TCOL[TG.sel],3);
         playS('place');
@@ -468,6 +468,11 @@ function renderTerr(camX,camY){
     g.fillRect(bx3-6,fl?by3-4:by3-1,4,2);g.fillRect(bx3+2,fl?by3-4:by3-1,4,2);
     g.fillStyle='#ffd23d';g.fillRect(bx3-1,by3-1,1,1);g.fillRect(bx3+1,by3-1,1,1);
   }
+  /* friends on the same rig (PART 58): their digger in blue, their name over it */
+  for(const o of netTerrOthers()){const ox=(o.px-camX)*8,oy=(o.py-camY)*8;
+    g.fillStyle='#e8b88f';g.fillRect(ox-2,oy-8,5,4);g.fillStyle='#2b2430';g.fillRect(o.dir>0?ox+1:ox-2,oy-7,1,1);
+    g.fillStyle='#3d6fd1';g.fillRect(ox-3,oy-4,7,6);g.fillStyle='#34343a';g.fillRect(ox-3,oy+2,3,5);g.fillRect(ox+1,oy+2,3,5);
+    g.fillStyle='#fff';g.font='bold 8px monospace';g.textAlign='center';g.fillText(o.name,ox,oy-11);g.textAlign='left';}
   /* player (walk anim, facing, mining arm) */
   const px3=(TG.px-camX)*8,py3=(TG.py-camY)*8;
   const walk=Math.abs(TG.vx)>1?Math.sin(TG.anim*11)*2:0;
