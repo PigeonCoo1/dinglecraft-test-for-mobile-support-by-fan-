@@ -53,6 +53,7 @@ function titanExtra(e,dt,pd,pdx,pdz){
     scene.add(m);
     entities.push({t:'rock',x:e.x,y:e.y+2.6,z:e.z,
       vx:pdx/dd*10,vy:6.5+pd*0.12,vz:pdz/dd*10,age:0,mesh:m});
+    if(NET.on){const r=entities[entities.length-1];netShotOut('r',r.x,r.y,r.z,r.vx,r.vy,r.vz);}   /* PART 58 */
     playS('throw');
   }
   /* shockwave slam */

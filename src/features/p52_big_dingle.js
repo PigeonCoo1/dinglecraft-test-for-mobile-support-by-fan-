@@ -141,6 +141,7 @@ function nukeDrop(){
   const c=P.ride;
   spawnABomb(c.x,c.y-0.4,c.z,c.vx*0.5,c.vz*0.5);
   NARM.e=entities[entities.length-1];
+  if(NET.on)netShotOut('ab',NARM.e.x,NARM.e.y,NARM.e.z,NARM.e.vx,0,NARM.e.vz);   /* friends see it fall, and get the countdown (PART 58) */
   NARM.t=20;NARM.sir=0;
   playS('planedrop');
   showToast('Bombs away. You have 20 seconds to be somewhere else.');
@@ -172,6 +173,7 @@ function tickMega(dt){
   }
 }
 function megaNuke(x,y,z){
+  if(NET.on)netFxOut('mega',x,y,z,NK_RIM);   /* every screen carves its own crater (PART 58) */
   const n={x:Math.round(x),y:Math.round(y),z:Math.round(z),d:DIM};
   NUKES.push(n);
   /* the crater: everything to the void. bunkercrete politely declines. */
@@ -222,7 +224,7 @@ function megaNuke(x,y,z){
   for(const o of entities.slice()){
     if(o.dead)continue;
     const od=Math.hypot(o.x-x,(o.y-y)||0,o.z-z);
-    if(o.t==='mob'&&od<NK_KILL){o.hurtT=0;hurtMob(o,99999,(o.x-x)||0.1,(o.z-z)||0.1);}
+    if(o.t==='mob'&&od<NK_KILL&&!o.netp){o.hurtT=0;hurtMob(o,99999,(o.x-x)||0.1,(o.z-z)||0.1);}
     else if((o.t==='car'||o.t==='skate'||o.t==='cart'||o.t==='boat'||o.t==='plane')&&od<NK_KILL)hitCar(o,99999);
     else if((o.t==='drop'||o.t==='ball')&&od<NK_RIM+4&&!crKeepDrop(o))removeEnt(o);
   }

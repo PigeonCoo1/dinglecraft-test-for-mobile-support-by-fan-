@@ -34,9 +34,9 @@ const of=(L,t,to)=>L.filter(x=>x.m.t===t&&(to==null||x.to===to));
 boot.run(async()=>{
   /* ===== 1. statics ===== */
   const order=fs.readFileSync(SRC+'ORDER.txt','utf8');
-  const files=['n0_contract.js','n1_link.js','n2_sync.js','n3_world.js','n4_share.js','n5_ui.js'];
-  ok('PART 58 is six files in src/net, each with its marker, listed right before Malgorath',files.every(f=>fs.readFileSync(SRC+'net/'+f,'utf8').startsWith('/* ---- PART 58: '+f+' ---- */\n'))&&
-    order.indexOf('net/n5_ui.js\n')<order.indexOf('\nmalgorath/m0_contract.js\n')&&order.indexOf('net/n0_contract.js')>order.indexOf('ai_players/mob_helpers.js'));
+  const files=['n0_contract.js','n1_link.js','n2_sync.js','n3_world.js','n4_share.js','n5_ui.js','n6_malg.js'];
+  ok('PART 58 is seven files in src/net, each with its marker, listed right before Malgorath',files.every(f=>fs.readFileSync(SRC+'net/'+f,'utf8').startsWith('/* ---- PART 58: '+f+' ---- */\n'))&&
+    order.indexOf('net/n5_ui.js\n')<order.indexOf('net/n6_malg.js\n')&&order.indexOf('net/n6_malg.js\n')<order.indexOf('\nmalgorath/m0_contract.js\n')&&order.indexOf('net/n0_contract.js')>order.indexOf('ai_players/mob_helpers.js'));
   const VEN=path.join(boot.ROOT,'assets','vendor');
   const pj=fs.readFileSync(path.join(VEN,'peerjs.1.5.4.min.js'),'utf8'),HH=fs.readFileSync(boot.BUILD+'head.html','utf8');
   ok('PeerJS 1.5.4 is vendored with its MIT licence, inlined once with the licence before it',fs.readFileSync(path.join(VEN,'peerjs.LICENSE'),'utf8').includes('The MIT License')&&
@@ -151,6 +151,8 @@ boot.run(async()=>{
   V.netSetPvp(true);drain(T);
   /* a mob hunts the guest */
   send('trA',{t:'po',p:{x:gp.x,y:gp.y,z:gp.z,yaw:0,pitch:0,d:'over',sn:0,sw:0,h:0,hp:20,dead:0,rd:0}});step(10);
+  {const bx0=Math.floor(gA.body.x),by0=Math.floor(gA.body.y),bz0=Math.floor(gA.body.z);   /* headroom: a leaf or a ledge above the body can strand the zombie on top of it */
+    for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=0;dy<=4;dy++)V.setBlock(bx0+dx,by0+dy,bz0+dz,0);step(2);drain(T);}
   V.GR.freezeMobs=false;V.spawnMob('zombie',gA.body.x+1.1,gA.body.y,gA.body.z);const z2=V.entities[V.entities.length-1];P().x+=30;step(25);drain(T);
   let hit=false;for(let i=0;i<60&&!hit;i++){step(1);hit=of(drain(T),'dmg','trA').some(x=>x.m.how==='mob');}
   ok('a zombie next to a guest’s body (the host far away) goes for the guest, and the hit is the guest’s',hit);
@@ -171,6 +173,12 @@ boot.run(async()=>{
   if(!V.NET.on){await V.netHostStart({tr:T,code:'TESTA'});drain(T);}
   V.netTrJoin('trA');send('trA',{t:'hi',v:V.NET_V,gv:V.GAME_VERSION,name:'Kim'});
   V.netTrJoin('trC');send('trC',{t:'hi',v:V.NET_V,gv:V.GAME_VERSION,name:'Lee'});drain(T);
+  /* the host's effects go out */
+  {V.startDisaster('tornado',P().x+30,P().z);step(8);L=drain(T);const ds=of(L,'ds','trA');
+    ok('a disaster on the host goes out about four times a second, with its twister ('+ds.length+' in 8 frames)',ds.length>=1&&ds.length<=4&&ds[ds.length-1].m.k==='tornado'&&Array.isArray(ds[ds.length-1].m.tw));
+    V.endDisaster(true);step(10);drain(T);
+    V.P.pitch=0;V.fireLaser();L=drain(T);const bm=of(L,'fx','trA').find(x=>x.m.k==='beam');
+    ok('laser eyes: the beam goes out (start, length, end)',!!bm&&Array.isArray(bm.m.e)&&bm.m.r>0);step(10);drain(T);}
   send('trA',{t:'bye'});L=drain(T);
   ok('a guest who leaves is gone, and the others hear it ('+[...V.NET.peers.values()].map(p=>p.name+'@'+p.tr).join(' ')+' | '+L.map(x=>x.to+':'+x.m.t).join(' ')+')',V.NET.peers.size===1&&of(L,'pl','trC').length===1);
   V.netStop('test');L=drain(T);
@@ -248,6 +256,38 @@ boot.run(async()=>{
     ok('a friend’s arrow flies here too, as a harmless copy, and is not sent back',V.entities.length===n0+1&&a.t==='arrow'&&a.owner==='fx'&&a.fx===1&&!of(drain(T2),'sh').length);
     const hp0=V.P.hp;V.P.hurtT=0;a.x=P().x;a.y=P().y+1;a.z=P().z;a.vx=0;a.vz=0.1;a.vy=0;a.age=1;step(2);
     ok('...it never hurts anyone here (the real hit comes as damage)',V.P.hp===hp0);}
+  /* a friend's effects, here */
+  {drain(T2);const x0=P().x,y0=P().y,z0=P().z;
+    const edNear=(L2,cx,cz,r)=>of(L2,'ed').some(x=>x.m.e.some(e=>Math.hypot(e[1]-cx,e[3]-cz)<r));   /* this world's own lava and water keep flowing far away */
+    send('HOST',{t:'sh',k:'n',p:[x0+2,y0+1,z0,0,0,0],g:0,d:'over'});const nd=V.entities[V.entities.length-1];
+    ok('a friend’s grenade flies here as a copy',nd.t==='nade'&&nd.fx===1);
+    V.P.hp=20;V.P.hurtT=0;step(70);L=drain(T2);
+    ok('...and the copy never goes off here (no bang, no blocks, no damage: the real one comes from its owner)',nd.dead&&V.P.hp===20&&!edNear(L,x0+2,z0,6)&&!of(L,'fx').length);
+    send('HOST',{t:'fx',k:'beam',x:x0+1,y:y0+1.5,z:z0,r:10,e:[x0+11,y0+1.5,z0],d:'over'});
+    ok('a friend’s laser beam is drawn here',V.entities.some(e=>e.t==='beam'&&!e.dead));
+    V.P.hp=20;V.P.hurtT=0;send('HOST',{t:'fx',k:'nuke',x:x0+3,y:y0+1,z:z0,r:9,d:'over'});
+    ok('a walking Nuke Keg going off next to this player hurts this player here, with the flash ('+V.P.hp+')',V.P.hp<20&&V.getNUKE().flash>0);
+    V.P.hp=20;step(60);drain(T2);
+    const tx=x0+6,tz=z0,ds=o=>send('HOST',Object.assign({t:'ds',k:'tornado',cx:Math.floor(tx),cz:Math.floor(tz),gy:Math.floor(y0),tt:10,dur:180,tw:[tx,tz],d:'over',from:'Host'},o||{}));
+    ds();step(2);const tw=V.entities.find(e=>e.t==='twister'&&!e.dead);
+    ok('a friend’s tornado: a twister copy here',!!tw&&tw.fx===1);
+    const d0=Math.hypot(V.P.x-tw.x,V.P.z-tw.z);for(let i=0;i<12;i++){if(i%5===0)ds();step(1);}
+    ok('...it pulls this screen’s player in ('+d0.toFixed(2)+' -> '+Math.hypot(V.P.x-tw.x,V.P.z-tw.z).toFixed(2)+')',Math.hypot(V.P.x-tw.x,V.P.z-tw.z)<d0);
+    ok('...and never writes the world from here',!edNear(drain(T2),tx,tz,14)&&!V.getDIS().kind);
+    step(45);ok('the friend’s tornado goes quiet: the copy goes',tw.dead&&!V.entities.some(e=>e.t==='twister'&&!e.dead));
+    V.P.x=x0;V.P.y=y0;V.P.z=z0;V.P.vx=V.P.vy=V.P.vz=0;step(30);drain(T2);
+    send('HOST',{t:'ds',k:'volcano',cx:Math.floor(x0)+40,cz:Math.floor(z0),gy:Math.floor(y0),tt:5,dur:180,tw:0,d:'over',from:'Host'});step(8);
+    ok('a friend’s volcano: its lava bombs fly here as copies',V.entities.some(e=>e.t==='lavab'&&e.fx===1&&!e.dead));
+    const lv=[];for(let i=0;i<240;i++){step(1);for(const x of drain(T2))if(x.m.t==='ed')for(const e of x.m.e)if(e[4]===V.B.LAVA)lv.push(e);}
+    ok('...copies that land without setting lava here (they still burn whoever they land on)',!lv.length&&!V.getDIS().kind);
+    ok('...and stop when the friend’s volcano goes quiet',!V.entities.some(e=>e.t==='lavab'&&!e.dead));
+    send('HOST',{t:'sh',k:'ab',p:[x0+5,y0+30,z0,0,0,0],g:0,d:'over'});
+    const ab=V.entities.find(e=>e.t==='abomb'&&!e.dead);
+    ok('the Big Dingle dropped by a friend falls here too, with the countdown',!!ab&&ab.fx===1&&ab.nt===20);
+    step(5);ok('...ticking',ab.nt<20&&ab.nt>19);
+    const n0=V.getNUKES().length;send('HOST',{t:'fx',k:'mega',x:x0+3000,y:40,z:z0,r:58,d:'over'});
+    ok('it goes off: this screen carves the same crater (it joins this world’s nuke list) and the falling copy goes',V.getNUKES().length===n0+1&&V.getNUKES().some(n=>n.x===Math.round(x0+3000))&&ab.dead);
+    ok('...without sending anything back',!of(drain(T2),'fx').length);}
   /* the host leaves */
   send('HOST',{t:'bye',why:'The host closed the world'});await sleep(20);
   ok('the host leaving sends the guest to the title, the link off',!V.playing&&!V.NET.on);

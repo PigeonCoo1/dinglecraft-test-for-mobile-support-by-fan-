@@ -248,6 +248,7 @@ function throwGrenade(st){
   entities.push({t:'nade',x:e[0]+l[0]*0.4,y:e[1]+l[1]*0.4,z:e[2]+l[2]*0.4,
     vx:l[0]*13+P.vx*0.5,vy:l[1]*13+3.4,vz:l[2]*13+P.vz*0.5,
     hw:0.12,h:0.22,onGround:false,fuse:2.4,mesh:m,flash:fl});
+  {const g=entities[entities.length-1];if(NET.on)netShotOut('n',g.x,g.y,g.z,g.vx,g.vy,g.vz);}   /* friends see it fly (PART 58) */
 }
 function updateNade(e,dt){
   e.fuse-=dt;
@@ -261,7 +262,7 @@ function updateNade(e,dt){
   e.flash.visible=e.fuse<0.9&&((e.fuse*7|0)%2===0);
   e.mesh.position.set(e.x,e.y+0.12,e.z);
   e.mesh.rotation.x+=dt*6;
-  if(e.fuse<=0){removeEnt(e);explode(e.x,e.y+0.15,e.z,2.4,false,mgNadeOwner(e));}
+  if(e.fuse<=0){removeEnt(e);if(!e.fx)explode(e.x,e.y+0.15,e.z,2.4,false,mgNadeOwner(e));}
 }
 /* ----- cars ----- */
 function rayAABB(e,ox,oy,oz,dx,dy,dz,max){

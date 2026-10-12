@@ -75,6 +75,7 @@
     { "group": "malgorath", "name": "m4_hr.js", "suite": "tests/malgorath/m4_hr.js", "repeat": 1, "clock": "real" },
 
     { "group": "net", "name": "n_link.js", "suite": "tests/net/n_link.js", "repeat": 1, "clock": "real", "tiers": ["quick"] },
+    { "group": "net", "name": "n_malg.js", "suite": "tests/net/n_malg.js", "repeat": 1, "clock": "real" },
 
     { "group": "og_trace", "name": "og_trace.js", "suite": "tests/texpacks/og_trace.js", "args": ["--golden", "tests/fixtures/og_trace/over.json"], "repeat": 1, "clock": "fake", "tiers": ["quick"] },
     { "group": "og_trace", "name": "og_trace_purg.js", "suite": "tests/texpacks/og_trace.js", "args": ["--golden", "tests/fixtures/og_trace/purg.json"], "repeat": 1, "clock": "fake" },
@@ -93,7 +94,8 @@
     "u_title.js": "Release 1.0 (game v6.7), final fixes: the title waits for the saved settings (name prompt, boot music), the player's name (pnValid, pn round trip, pnText in any case but never the Dan Dingle credit, pnBack), the menu music on the recording fake AudioContext (Sound off / Music 0 never create one, the bus, the fade), the World Music label and 6.7 Help rows, no toast push, the rules editor, the pickup redraw, Malgorath's bar hidden on a new world and on Save & Quit",
     "c3_found.js": "Release 1.0 cycle (game v6.7), found works: Dan's own paintings and discs as rare loot (the lootFill roll: a seed + chest-cell hash, 1 in 40, no Math.random; minting through the registry; data md5-pinned to his save; hang, play, caps, bots, save/load, never in purgatory)",
     "u_touch.js": "Release 1.1 (game v7.0), The Pocket Update: the touch controls (Auto / On / Off and its save, the contexts, the stick, look, tap = use, hold = mine, every button, the vehicle EXIT, the creative double-tap), the UI scale on phones, Pocket Performance and the core hooks",
-    "n_link.js": "Release 1.1 (game v7.1), The Link Update: multiplayer over the memory transport, both ends (the welcome world, bodies, edits both ways and relayed, chests, chat, the mob stream, hits, kills and XP, pickups, PvP, mobs hunting guests, guests kept and saved, leaving, closing; joining as a guest, puppets, never saving the host world)"
+    "n_link.js": "Release 1.1 (game v7.1), The Link Update: multiplayer over the memory transport, both ends (the welcome world, bodies, edits both ways and relayed, chests, chat, the mob stream, hits, kills and XP, pickups, PvP, mobs hunting guests, guests kept and saved, leaving, closing; joining as a guest, puppets, never saving the host world; disasters, grenades, lasers, Nuke Kegs and the Big Dingle on every screen)",
+    "n_malg.js": "Release 1.1 (game v7.1), The Link Update: Malgorath together (the host runs the fight; guests get his body, rig state, drawings, adds and bar, hit him like the host, and are picked, hit, chomped, thrown and pulled over the wire; PART 57 untouched, wrapped from PART 58)"
   },
   "steps": [
     { "group": "repo", "name": "changelog", "cmd": ["node", "scripts/changelog.mjs", "--check"], "tiers": ["quick"], "when": { "file": "scripts/changelog.mjs" } },

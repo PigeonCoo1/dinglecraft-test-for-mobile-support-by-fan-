@@ -102,6 +102,7 @@ net/n2_sync.js
 net/n3_world.js
 net/n4_share.js
 net/n5_ui.js
+net/n6_malg.js
 
 # PART 57: the Malgorath Update
 malgorath/m0_contract.js

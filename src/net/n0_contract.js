@@ -29,6 +29,8 @@ const NET={on:false,role:null,kind:'',hb:0,code:'',tr:null,me:'H',name:'',peers:
   applying:0,edits:[],nid:1,byNid:new Map(),pup:new Map(),hostDim:'over',hostT:-1,
   beLast:new Map(),beT:0,poseT:0,entT:0,timeT:0,stT:0,pingT:0,grLast:'',guests:{},
   status:'',err:'',joinCb:null,welcomeAt:0,chunks:new Map(),wasDead:false,taken:new Set(),
+  mgA:new Map(),mgFx:[],mgTel:new Map(),mg:null,mgOn:0,mgSeen:null,mgThrow:null,mgPull:null,mgT:0,
+  rdis:null,rtw:null,rdT:0,rdHud:0,disT:0,abx:[],
   stats:{tx:0,rx:0,msgsTx:0,msgsRx:0},clock:()=>(typeof performance!=='undefined'?performance.now():Date.now())};
 const NET_V=1;                                  /* protocol version: guests with another one are turned away */
 const NET_MAX=8;                                /* players in a room, the host included */

@@ -7,7 +7,10 @@ function netApplyEdit(pf,x,y,z,id){
   pf=pf||'';x|=0;y|=0;z|=0;id|=0;
   if(y<0||y>=WH||(id!==0&&!DEFS[id]))return;
   const cx=Math.floor(x/CH),cz=Math.floor(z/CH),k=pf+cx+','+cz;
-  if(pf===dimPfx()&&chunks.has(k)){NET.applying++;try{setBlock(x,y,z,id);}finally{NET.applying--;}return;}
+  if(pf===dimPfx()&&chunks.has(k)){NET.applying++;try{setBlock(x,y,z,id);}finally{NET.applying--;}
+    /* the host's world said no (Malgorath's plate, a protected cell): everyone gets the block that is really there */
+    if(netHost()){const got=getBlock(x,y,z);if(got!==id)NET.edits.push([pf,x,y,z,got]);}
+    return;}
   /* a chunk this screen has not built (or another dimension): straight into its saved edits, so it is right when it loads */
   let m=chunkEdits.get(k);if(!m){m=new Map();chunkEdits.set(k,m);}
   m.set((x-cx*CH)+','+y+','+(z-cz*CH),id);
@@ -101,20 +104,21 @@ function netEntsOut(){
   NET.byNid.clear();
   for(const p of NET.peers.values()){
     if(!p.ready||!p.pose||p.pose.d!==DIM)continue;
-    const px=p.pose.x,pz=p.pose.z,m=[],dr=[],b=[],v=[];
+    const px=p.pose.x,pz=p.pose.z,m=[],dr=[],b=[],v=[],g=[];
     for(const e of entities){
       if(e.dead||e.np||Math.abs(e.x-px)>NET_RANGE||Math.abs(e.z-pz)>NET_RANGE)continue;
       if(e.t==='mob'){
         if(e.netp)continue;
         if(e.bot){if(e.A&&e.A.online&&!e.A.dead){const st=e.A.inv&&e.A.inv[e.A.sel];
           b.push([netNid(e),e.A.name,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+e.yaw.toFixed(2),+(e.pitch||0).toFixed(2),st?st.id:0,e.A.ctl&&e.A.ctl.sneak?1:0,e.A.swing>0.3?1:0]);}continue;}
-        const T=MOBT[e.mt];if(!T||T.mg)continue;
+        const T=MOBT[e.mt];if(!T)continue;
+        if(T.mg){if(e.mt!=='demon')g.push(netMgRow(e));continue;}   /* his parts, eye and adds (the boss himself rides 'mg') */
         m.push([netNid(e),e.mt,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+e.yaw.toFixed(2),Math.round(e.hp),e.hurtT>0.3?1:0,e.name||0,e.tame?1:0]);
       }
       else if(NET_VEH[e.t])v.push([netNid(e),e.t,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),+(e.yaw||0).toFixed(3),Math.round(e.hp||0),P.ride===e?1:0]);
       else if(e.t==='drop'&&e.st)dr.push([netNid(e),e.st.id,e.st.count,+e.x.toFixed(2),+e.y.toFixed(2),+e.z.toFixed(2),e.st.dur!=null?e.st.dur:-1]);
     }
-    netSendTr(p.tr,{t:'en',m,dr,b,v});
+    netSendTr(p.tr,{t:'en',m,dr,b,v,g});
   }
 }
 function netPupClear(){for(const e of NET.pup.values())if(!e.dead)removeEnt(e);NET.pup.clear();}
@@ -164,6 +168,7 @@ function netEntsIn(msg){
     }
     e.tx=x;e.ty=y;e.tz=z;e.tyaw=yaw;e.pitch=pitch;e.av.ctl.sneak=!!sn;if(sw&&e.av.swing<=0)e.av.swing=1;e.av.inv[0]=held?{id:held,count:1}:null;
   }
+  if(Array.isArray(msg.g))netMgEntsIn(msg.g,seen);
   for(const [key,e] of NET.pup)if(!seen.has(key)){if(!e.dead)removeEnt(e);NET.pup.delete(key);}
 }
 function netPupTick(e,dt){
@@ -192,7 +197,7 @@ function netPupTick(e,dt){
 function netEntTick(e,dt){if(e.netp)netBodyTick(e,dt);else netPupTick(e,dt);}
 /* a guest hit one of the host's mobs (or an AI player): the host's hurtMob decides */
 function netHitOut(e,dmg,kx,kz){
-  if(!(dmg>0)||e.hurtT>0.25)return;
+  if(!(dmg>0)||e.hurtT>0.25||NET.applying)return;   /* a copy of a friend's blast never sends hits */
   e.hurtT=0.5;for(const m of e.mats)m.emissive&&m.emissive.setRGB(0.45,0,0);playS('hit');
   netSend('H',{t:'hit',n:e.nid,d:+dmg.toFixed(2),kx:+(kx||0).toFixed(2),kz:+(kz||0).toFixed(2),how:typeof HIT_HOW!=='undefined'&&HIT_HOW?HIT_HOW:'melee'});
 }
@@ -216,7 +221,13 @@ function netTakeIn(p,nid){
 /* explosions: the blocks come as edits, the bang and the smoke come as this */
 function netFxOut(k,x,y,z,r){if(NET.on&&!NET.applying)netShout({t:'fx',k,x:+x.toFixed(1),y:+y.toFixed(1),z:+z.toFixed(1),r:+r||3,d:DIM});}
 function netFxIn(m){
+  if(m.k==='mega'&&m.d!==DIM&&typeof NUKES!=='undefined'){NUKES.push({x:Math.round(m.x),y:Math.round(m.y),z:Math.round(m.z),d:m.d});return;}   /* carved when that world is next built */
   if(m.d!==DIM||!P)return;
+  const pd=Math.hypot(P.x-m.x,P.z-m.z);
+  if(m.k==='beam'&&Array.isArray(m.e)){if(pd<120)laserBeam(m.x,m.y,m.z,+m.e[0],+m.e[1],+m.e[2],+m.r||1);return;}
+  if(m.k==='nuke'){if(pd<200){const d=nukeHurtP(m.x,m.y,m.z);nukeShow(m.x,m.y,m.z,d);}return;}
+  if(m.k==='mega'){for(const e of NET.abx)if(!e.dead)removeEnt(e);NET.abx.length=0;
+    NET.applying++;try{megaNuke(m.x,m.y,m.z);}finally{NET.applying--;}return;}
   if(m.k==='boom'){burstParticles(m.x,m.y,m.z,B.TNT,24,1.2);playSAt('boom',m.x,m.y,m.z);
     const d=Math.hypot(P.x-m.x,P.y-m.y,P.z-m.z);if(d<16&&typeof SHAKE!=='undefined')SHAKE.t=Math.max(SHAKE.t||0,0.25*(1-d/16));}
 }
@@ -229,15 +240,20 @@ function netTick(dt){
   NET.beT+=dt;if(NET.beT>0.5){NET.beT=0;const b=netBeScan();if(b.length)netShout({t:'be',b});}
   if(now-NET.poseT>=100){NET.poseT=now;netPosesOut();}
   netBodiesSync();
+  netFxTick(dt);
   if(P&&P.dead&&!NET.wasDead)netDeathOut();
   NET.wasDead=!!(P&&P.dead);
   if(netHost()){
     if(now-NET.entT>=125){NET.entT=now;netEntsOut();}
+    if(DIS.kind&&now-NET.disT>=250){NET.disT=now;netDisOut();}
+    if(now-NET.mgT>=100){NET.mgT=now;netMgOut();}
     if(now-NET.timeT>=1000){NET.timeT=now;const g=JSON.stringify(GR),msg={t:'tm',v:+timeOfDay.toFixed(5),d:DIM,pvp:NET.pvp};
       if(g!==NET.grLast){NET.grLast=g;msg.gr=GR;}msg.mk=netMarketOut();netBcast(msg);}
   }else{
     if(now-NET.stT>=15000){NET.stT=now;netStateOut();}
+    if(DIS.kind&&now-NET.disT>=250){NET.disT=now;netDisOut();}
     netParkTick();
+    if(NET.mgOn&&DIM!=='over')netMgDrop();
     /* the host's mobs are the only mobs here: anything this screen spawned on its own (a village's aliens...) goes */
     if(netPuppetMobs()){for(const e of entities)if(e.t==='mob'&&!e.dead&&!e.np&&!e.netp&&!e.bot&&!e.netOwn&&!MOBT[e.mt].mg)removeEnt(e);}   /* Malgorath's own stay */
     else if(NET.pup.size)netPupClear();

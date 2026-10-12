@@ -90,8 +90,22 @@ Grep for names with `tools/grep-safe.sh`.
 
 - **The host is the truth.** A guest never saves the host's world (`saveToStorage` refuses) and never runs its own mobs
   while it stands in the host's dimension (`netPuppetMobs`): anything it spawns there by itself is removed in `netTick`.
-  Puppet Purgatory's cast streams like any mob (`mpMobMesh` builds the puppets); Malgorath is the exception: each player's
-  own game runs his fight (he spawns only through `mgSpawnBoss`, and M1 owns the Bite's block writes).
+  Puppet Purgatory's cast streams like any mob (`mpMobMesh` builds the puppets).
+- **Malgorath is shared from the outside.** PART 57 is frozen, so `n6_malg.js` wraps about twenty of its top-level
+  functions (`mg2Bots`, `mg2Who`, `mg2Hit`, `mg2Swallow`, `mg2Throw`, `tickMalg`, `mgOnDie`...). It must load before
+  PART 57 (function declarations are hoisted, so the wrappers exist before PART 57's top level stores `mg2Hit` in
+  `MGREG.fight`), every wrapper is guarded by `typeof` (builds without PART 57) and is a pass-through with the link off.
+  The host runs the fight; guests are adapters shaped like AI players (`a.netg`), and anything his code does to a target
+  (`mg2Hit`, `mg2True`, `mg2Swallow`, `mg2Throw`, `mg2BotToPile`) must go over the wire for them, never touch their body
+  entity (the next pose overwrites it). On a guest `tickMalg` is replaced by `netMgMirror`: his fight never runs there,
+  the boss is made with `mgSpawnBoss` (from tickMalg's seat) and is a puppet (`e.np`), and `mgAbandon`/`mgOnDie`/
+  `mgOnRespawn` do nothing (they would run M2 on a fresh `MG2`, and M1's resets write blocks). A new attack in PART 57
+  that hurts or moves `P` only (not through the target helpers) is not shared until it is.
+- **Copies of a friend's effects carry `e.fx`.** A grenade copy never explodes, a lava bomb copy never sets lava or fire,
+  a twister copy never shreds blocks (`netTwisterTick`), a boulder copy may still hit this screen's player. The Big
+  Dingle's crater is carved into chunks directly (not edits), so every screen runs `megaNuke` itself (`NET.applying` set:
+  `netHitOut` sends nothing while it does) and a screen in another dimension only adds it to `NUKES`. Explosions that
+  hurt "everything that breathes" skip remote bodies (`o.netp`): each player's own screen does their damage.
 - **Writes from the wire set `NET.applying`.** Anything that calls `setBlock` (or another hook that sends) while applying
   a remote message must keep it set, or the edit bounces back and forth forever.
 - **Puppets and bodies are `t:'mob'` but not mobs.** Code that walks `entities` for mobs must skip `e.np` (a host mob

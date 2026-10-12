@@ -66,6 +66,11 @@ function fireLaser(){
     burstParticles(tg.e.x,tg.e.y+tg.e.h*0.5,tg.e.z,B.LAVA,6,0.6);
   }
   const ex=e0[0]+d0[0]*len,ey=e0[1]+d0[1]*len,ez=e0[2]+d0[2]*len;
+  laserBeam(e0[0],e0[1],e0[2],ex,ey,ez,len);
+  if(NET.on)netFxBeam(e0,ex,ey,ez,len);   /* friends see it (PART 58) */
+}
+function laserBeam(x0,y0,z0,ex,ey,ez,len){
+  const e0=[x0,y0,z0];
   const G=new THREE.Group();
   const core=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.16,1),
     new THREE.MeshBasicMaterial({color:0xfff0e8,transparent:true,opacity:1}));

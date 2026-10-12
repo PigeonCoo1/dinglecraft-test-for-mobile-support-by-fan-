@@ -144,6 +144,7 @@ function tickNuke(dt){
   }
 }
 function nukeExplode(x,y,z){
+  if(NET.on)netFxOut('nuke',x,y,z,9);   /* friends feel it on their own screens (PART 58) */
   /* the crater: vaporize, don't litter */
   const grief=GR.mobGrief;
   const r=9,r2=r*r;
@@ -171,6 +172,18 @@ function nukeExplode(x,y,z){
     if(i<14&&typeof igniteAt==='function')igniteAt(bx,ci.h,bz);
   }
   /* hurt everything that breathes */
+  const pdist=nukeHurtP(x,y,z);
+  for(const o of entities){
+    if(o.t!=='mob'||o.dead||o.netp)continue;   /* a friend feels it on their own screen */
+    const od=Math.hypot(o.x-x,o.z-z);
+    if(od<14){
+      o.hurtT=0;
+      hurtMob(o,Math.max(2,Math.round(22-od*1.4)),(o.x-x)||0.1,(o.z-z)||0.1);
+    }
+  }
+  nukeShow(x,y,z,pdist);
+}
+function nukeHurtP(x,y,z){
   const pdx=P.x-x,pdz=P.z-z;
   const pdist=Math.hypot(pdx,(P.y+0.9)-y,pdz);
   if(!P.dead&&pdist<16){
@@ -178,14 +191,9 @@ function nukeExplode(x,y,z){
     damagePlayer(Math.max(3,Math.round(20-pdist*1.2)),pdx,pdz);
     P.vy=Math.max(P.vy,Math.max(2,11-pdist*0.6));
   }
-  for(const o of entities){
-    if(o.t!=='mob'||o.dead)continue;
-    const od=Math.hypot(o.x-x,o.z-z);
-    if(od<14){
-      o.hurtT=0;
-      hurtMob(o,Math.max(2,Math.round(22-od*1.4)),(o.x-x)||0.1,(o.z-z)||0.1);
-    }
-  }
+  return pdist;
+}
+function nukeShow(x,y,z,pdist){
   /* the show: flash, quake, mushroom */
   nukeShake(Math.max(0.25,1.7-pdist*0.045),2.4);
   NUKE.flash=clamp(1.4-pdist*0.02,0.25,1);

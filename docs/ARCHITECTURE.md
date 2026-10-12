@@ -129,7 +129,7 @@ Line ranges are where each piece sat in the shipped v6.3 `game.js`, handy when a
 | PART | update | src | v6.3 lines |
 |---|---|---|---|
 | 53 | AI players (v5.9) | `ai_players/a1_core.js` … `a9_ui.js` (core, world, nav, body, skills, build, combat, mind, UI) + `mob_helpers.js` | 12336-16352 |
-| 58 | the Link Update: multiplayer (v7.1) | `net/n0_contract.js` (state, rules, save fields), `n1_link.js` (transports: PeerJS, BroadcastChannel, memory; message pieces), `n2_sync.js` (the room: host, join, welcome, every message), `n3_world.js` (blocks, containers, bodies, the mob stream, puppets, the frame tick), `n4_share.js` (vehicles and dragons handed over, ride puppets, hats and doings on name tags, the shared market, casino news), `n5_ui.js` (the Multiplayer panel, the badge, `NTEX`) | after PART 53 |
+| 58 | the Link Update: multiplayer (v7.1) | `net/n0_contract.js` (state, rules, save fields), `n1_link.js` (transports: PeerJS, BroadcastChannel, memory; message pieces), `n2_sync.js` (the room: host, join, welcome, every message), `n3_world.js` (blocks, containers, bodies, the mob stream, puppets, the frame tick), `n4_share.js` (vehicles and dragons handed over, ride puppets, hats and doings on name tags, the shared market, casino news, DEEP DIRT 2D and the cinema, shots, disasters, grenades, the Big Dingle), `n5_ui.js` (the Multiplayer panel, the badge, `NTEX`), `n6_malg.js` (Malgorath together: wrappers around PART 57, the host's stream, the guest's mirror) | after PART 53 |
 | 57 | the Malgorath Update (v6.3) | `malgorath/m0_contract.js`, `m1_*` the Bite, `m2_*` the fight, `m3_*` the OG model and effects | 16353-20577 |
 | 56 | the Creativity Update (v6.2) | `creativity/c0_contract.js`, `c1_*` paintings, `c2_*` music | 20578-22058 |
 | 55 | Puppet Purgatory (v6.1) | `purgatory/p0_*` contract, entry, guide; `p1_*` audio, rules, world; `p2_*` craft, gear, items, tiles; `p3_*` mobs, NPCs, rig, spawn; `p4_*` arena and the three headliners; `p5_bots.js` | 22059-30218 |
@@ -265,7 +265,11 @@ then a stream of messages (`netRecv` lists them all). The core calls it in these
   no mobs (`netPuppetMobs`).
 - `mobBotTarget` / `mobHitBot` (a7) and `mob_helpers.js`: remote bodies are targets, anchors and spacing like AI players.
 - `frame` (p07h): `netTick(dt)` every frame; with friends in the world the simulation keeps running behind the pause menu.
-- `explode` (p05b): `netFxOut` (the bang and smoke; the blocks go as edits). `chatSubmit` / `renderTab` (a9): chat out,
+- `explode` (p05b): `netFxOut` (the bang and smoke; the blocks go as edits). `throwGrenade` (p08), `fireLaser` (p22,
+  now drawing through `laserBeam`), `nukeExplode` (p26, split into `nukeHurtP` / `nukeShow`), `nukeDrop` / `megaNuke`
+  (p52), the Titan's boulders (p23) and the disasters (p11: `updateTwister` hands `e.fx` copies to `netTwisterTick`; lava
+  and fire bomb copies write nothing) send copies or effects to everyone; `netFxTick` runs a friend's disaster here.
+- Malgorath (PART 57) is never edited for this: `n6_malg.js` wraps his functions (see LANDMINES). `chatSubmit` / `renderTab` (a9): chat out,
   the room in the Tab list. `quitToTitle` / `enterGame` (p07f): leave or close the room; a guest's world is never the
   "Continue" world.
 

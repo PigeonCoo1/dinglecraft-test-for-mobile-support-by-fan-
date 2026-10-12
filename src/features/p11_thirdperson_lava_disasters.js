@@ -319,6 +319,7 @@ function updateDisaster(dt){
 }
 /* tornado pieces */
 function updateTwister(e,dt){
+  if(e.fx){netTwisterTick(e,dt);return;}   /* a friend's tornado (PART 58) */
   e.wT-=dt;
   if(e.wT<=0){
     e.wT=2.5+Math.random()*2.5;
@@ -411,14 +412,14 @@ function updateLavaBomb(e,dt){
   const fx=Math.floor(e.x),fy=Math.floor(e.y),fz=Math.floor(e.z);
   if(e.vy<0&&(solidAt(fx,fy,fz)||e.age>8)){
     const ty=fy+ (solidAt(fx,fy,fz)?1:0);
-    if(getBlock(fx,ty,fz)===B.AIR&&DIS.kind==='volcano'){
+    if(getBlock(fx,ty,fz)===B.AIR&&DIS.kind==='volcano'&&!e.fx){
       setBlock(fx,ty,fz,B.LAVA);
       DIS.data.lava.push([fx,ty,fz]);
     }
     burstParticles(e.x,e.y+0.5,e.z,B.LAVA,10,0.8);
     playS('sizzle');
     if(P&&!P.dead&&Math.hypot(P.x-e.x,P.y-e.y,P.z-e.z)<4)damagePlayer(6);
-    igniteAt(fx,ty+1,fz);
+    if(!e.fx)igniteAt(fx,ty+1,fz);
     removeEnt(e);
   }
 }
@@ -469,7 +470,7 @@ function updateFireBomb(e,dt){
   const fx=Math.floor(e.x),fy=Math.floor(e.y),fz=Math.floor(e.z);
   const hid=getBlock(fx,fy,fz);
   if(solidAt(fx,fy,fz)||isTreeId(hid)){
-    if(isTreeId(hid))igniteAt(fx,fy,fz);
+    if(isTreeId(hid)&&!e.fx)igniteAt(fx,fy,fz);
     else burstParticles(e.x,e.y+0.4,e.z,B.LAVA,5,0.5);
     removeEnt(e);return;
   }

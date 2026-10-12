@@ -138,6 +138,8 @@ function netStop(why){
   setTimeout(()=>{try{if(T)T.close();}catch(e){}},why==='test'?0:250);
   for(const p of NET.peers.values())netBodyDrop(p);
   netPupClear();
+  netDisEnd();NET.abx.length=0;
+  netMgDrop();NET.mgA.clear();NET.mg=null;NET.mgPull=null;NET.mgFx.length=0;
   Object.assign(NET,{on:false,role:null,tr:null,hostTr:null,me:'H',code:'',status:''});
   NET.peers.clear();NET.byTr.clear();NET.byNid.clear();NET.edits.length=0;NET.chunks.clear();
   if(typeof netUiSync==='function')netUiSync();
@@ -177,6 +179,7 @@ function netRecv(trId,m){
       case 'fx':netFxIn(m);netBcast(m,p.id);break;
       case 'tg':netTerrIn(m);netBcast(m,p.id);break;
       case 'sh':netShotIn(m);netBcast(m,p.id);break;
+      case 'ds':netDisIn(m);netBcast(m,p.id);break;
       case 'cn':netCineIn(m);netBcast(m,p.id);break;
       case 'bye':if(NET.tr)NET.tr.drop(trId);netPeerGone(p,'left');break;
     }
@@ -206,7 +209,15 @@ function netRecv(trId,m){
     case 'fx':netFxIn(m);break;
     case 'tg':netTerrIn(m);break;
     case 'sh':netShotIn(m);break;
+    case 'ds':netDisIn(m);break;
     case 'cn':netCineIn(m);break;
+    case 'mg':netMgIn(m);break;
+    case 'mgd':netMgDmgIn(m);break;
+    case 'mge':netMgEatIn(m);break;
+    case 'mgk':netMgThrowIn(m);break;
+    case 'mgt':netMgTpIn(m);break;
+    case 'mgh':if(P&&!P.dead){P.hp=20;drawStats();}break;
+    case 'mgw':netMgWinIn(m);break;
     case 'bye':netLost(m.why||'The host closed the world');break;
   }
 }

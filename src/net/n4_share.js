@@ -162,6 +162,89 @@ function netShotIn(m){
   if(m.d!==DIM||!Array.isArray(m.p)||m.p.length!==6)return;
   const [x,y,z,vx,vy,vz]=m.p,n=entities.length;
   NET.applying++;
-  try{if(m.k==='a')spawnArrow(x,y,z,vx,vy,vz,'fx',0);else if(m.k==='b')spawnBullet(x,y,z,vx,vy,vz,0,m.g||0);}finally{NET.applying--;}
+  try{if(m.k==='a')spawnArrow(x,y,z,vx,vy,vz,'fx',0);else if(m.k==='b')spawnBullet(x,y,z,vx,vy,vz,0,m.g||0);else netShotMore(m.k,x,y,z,vx,vy,vz);}finally{NET.applying--;}
   if(entities.length>n)entities[entities.length-1].fx=1;
+}
+/* grenades, the Big Dingle's bomb and the Titan's boulders: copies (fx) that fly here. A grenade copy never goes off (the real bang
+   comes as 'fx'); a boulder copy can still land on this screen's player (that is the point of being near a Titan) */
+function netShotMore(k,x,y,z,vx,vy,vz){
+  if(k==='n'){
+    if(!nadeG){nadeG=new THREE.BoxGeometry(0.2,0.24,0.2);nadeM=new THREE.MeshLambertMaterial({color:0x3b5634});}
+    const m=new THREE.Mesh(nadeG,nadeM),fl=new THREE.Mesh(new THREE.BoxGeometry(0.26,0.3,0.26),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.7}));
+    fl.visible=false;m.add(fl);scene.add(m);
+    entities.push({t:'nade',x,y,z,vx,vy,vz,hw:0.12,h:0.22,onGround:false,fuse:2.4,mesh:m,flash:fl,fx:1});
+  }else if(k==='ab'){
+    spawnABomb(x,y,z,vx,vz);const e=entities[entities.length-1];e.fx=1;e.nt=20;e.sir=0;NET.abx.push(e);
+    showToast('A friend dropped the Big Dingle. 20 seconds. Run.');
+  }else if(k==='r'){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5),new THREE.MeshLambertMaterial({color:0x77777f}));scene.add(m);
+    entities.push({t:'rock',x,y,z,vx,vy,vz,age:0,mesh:m,fx:1});
+  }
+}
+/* laser eyes: the beam, drawn on every screen nearby */
+function netFxBeam(e0,ex,ey,ez,len){if(NET.on&&!NET.applying)netShout({t:'fx',k:'beam',x:+e0[0].toFixed(2),y:+e0[1].toFixed(2),z:+e0[2].toFixed(2),r:+len.toFixed(2),
+  e:[+ex.toFixed(2),+ey.toFixed(2),+ez.toFixed(2)],d:DIM});}
+
+/* ----- disasters: whoever has one tells everyone four times a second; everyone else runs a copy (no world writes) ----- */
+function netDisOut(){
+  if(!DIS.kind)return;
+  const tw=DIS.data&&DIS.data.te&&!DIS.data.te.dead?[+DIS.data.te.x.toFixed(2),+DIS.data.te.z.toFixed(2)]:0;
+  netShout({t:'ds',k:DIS.kind,cx:DIS.cx,cz:DIS.cz,gy:DIS.gy,tt:+DIS.t.toFixed(2),dur:DIS.dur,tw,d:DIM,from:NET.name});
+}
+function netDisIn(m){if(!m||!DISNAME[m.k])return;NET.rdis=Object.assign({},m,{at:NET.clock()});}
+function netDisEnd(){
+  const R=NET.rdis;NET.rdis=null;
+  if(NET.rtw){if(!NET.rtw.dead)removeEnt(NET.rtw);NET.rtw=null;}
+  if(NET.rdHud&&!DIS.kind)disHud('');NET.rdHud=0;
+  if(R&&R.k==='tornado')for(const e of entities)if(e.t==='debris'&&e.fx&&!e.dead)removeEnt(e);
+}
+function netTwisterMake(x,y,z){
+  const G=new THREE.Group(),mats=[];
+  for(let i=0;i<12;i++){const r=0.5+i*0.34,m=new THREE.Mesh(new THREE.BoxGeometry(r*2,0.8,r*2),new THREE.MeshLambertMaterial({color:0x4a4650,transparent:true,opacity:0.55}));
+    m.position.y=i*0.85+0.4;m.rotation.y=i*0.7;G.add(m);mats.push(m);}
+  scene.add(G);G.position.set(x,y,z);
+  const e={t:'twister',x,y,z,vx:0,vz:0,tx:x,tz:z,mesh:G,parts:mats,deb:0,dT:0,fx:1};entities.push(e);return e;
+}
+/* updateTwister (p11) hands a friend's twister here: it goes where theirs goes and pulls this screen's player like theirs would */
+function netTwisterTick(e,dt){
+  const dx=e.tx-e.x,dz=e.tz-e.z;
+  if(Math.hypot(dx,dz)>14){e.x=e.tx;e.z=e.tz;}else{const k=Math.min(1,dt*4);e.x+=dx*k;e.z+=dz*k;}
+  if(((e.x*7)|0)!==e._lx||((e.z*7)|0)!==e._lz){e._lx=(e.x*7)|0;e._lz=(e.z*7)|0;e.y=heightAt(Math.floor(e.x),Math.floor(e.z));}
+  e.mesh.position.set(e.x,e.y,e.z);e.mesh.rotation.y+=dt*7;
+  if(P&&!P.dead&&!P.ride){const pdx=e.x-P.x,pdz=e.z-P.z,pd=Math.hypot(pdx,pdz);
+    if(pd<9&&pd>0.01){P.x+=pdx/pd*5.5*dt;P.z+=pdz/pd*5.5*dt;if(pd<4)P.vy=Math.max(P.vy,13);}}
+  e.dT-=dt;
+  if(e.dT<=0&&e.deb<30){e.dT=0.25;e.deb++;
+    const m=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.45,0.45),new THREE.MeshLambertMaterial({color:Math.random()<0.5?0x6b4a2c:0x3f8f3a}));scene.add(m);
+    entities.push({t:'debris',x:e.x+(Math.random()-0.5)*10,y:e.y+Math.random()*3,z:e.z+(Math.random()-0.5)*10,vx:0,vy:2,vz:0,age:0,mesh:m,tw:e,fx:1});}
+  if(Math.random()<0.5)burstParticles(e.x+(Math.random()-0.5)*4,e.y+Math.random()*8,e.z+(Math.random()-0.5)*4,B.DIRT,2,0.6);
+}
+/* every frame: the friend's disaster (its twister, its lava bombs, its fire rain, its clock on the HUD) and the Big Dingle countdown */
+function netFxTick(dt){
+  const R=NET.rdis;
+  if(R){
+    if(NET.clock()-R.at>1500||R.d!==DIM||!P||!playing)netDisEnd();
+    else{
+      const far=Math.hypot(P.x-R.cx,P.z-R.cz);
+      if(R.k==='tornado'&&Array.isArray(R.tw)){
+        if(!NET.rtw||NET.rtw.dead)NET.rtw=netTwisterMake(R.tw[0],heightAt(Math.floor(R.tw[0]),Math.floor(R.tw[1])),R.tw[1]);
+        NET.rtw.tx=R.tw[0];NET.rtw.tz=R.tw[1];
+      }else if(NET.rtw){if(!NET.rtw.dead)removeEnt(NET.rtw);NET.rtw=null;}
+      NET.rdT-=dt;
+      if(R.k==='volcano'&&far<140&&NET.rdT<=0){NET.rdT=0.22;
+        for(let i=0;i<2;i++){const a=Math.random()*6.28,sp=3+Math.random()*8;
+          const m=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.3,0.3),new THREE.MeshLambertMaterial({color:0xff8a2f,emissive:new THREE.Color(0.6,0.2,0)}));scene.add(m);
+          entities.push({t:'lavab',x:R.cx+0.5,y:R.gy+18,z:R.cz+0.5,vx:Math.sin(a)*sp,vy:9+Math.random()*4.5,vz:Math.cos(a)*sp,age:0,mesh:m,trailT:0,fx:1});}
+        if(far<60)playS('rumble');}
+      else if(R.k==='fire'&&far<120&&NET.rdT<=0){NET.rdT=0.08;
+        for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.5,0.18),new THREE.MeshLambertMaterial({color:0xff9a3f,emissive:new THREE.Color(0.7,0.3,0)}));scene.add(m);
+          entities.push({t:'fireb',x:R.cx+(Math.random()-0.5)*60,y:R.gy+30+Math.random()*8,z:R.cz+(Math.random()-0.5)*60,vx:(Math.random()-0.5)*2,vy:-13,vz:(Math.random()-0.5)*2,age:0,mesh:m,trailT:0,fx:1});}}
+      if(!DIS.kind){NET.rdHud=1;disHud((DISNAME[R.k]||R.k)+' — '+fmtT(R.dur-R.tt-(NET.clock()-R.at)/1000)+' ('+R.from+')');}
+    }
+  }
+  for(let i=NET.abx.length-1;i>=0;i--){const e=NET.abx[i];
+    if(e.dead){NET.abx.splice(i,1);if(!NARM.e)nukeHud(-1);continue;}
+    const prev=Math.ceil(e.nt);e.nt-=dt;
+    if(!NARM.e){nukeHud(e.nt);const now=Math.ceil(e.nt);if(now!==prev&&now>0)playS(now<=5?'ntickf':'ntick');e.sir-=dt;if(e.sir<=0&&e.nt>0){e.sir=2.4;playS('siren');}}
+    if(e.nt<-3){removeEnt(e);NET.abx.splice(i,1);if(!NARM.e)nukeHud(-1);}}
 }

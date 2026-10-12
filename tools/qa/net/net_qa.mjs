@@ -122,9 +122,12 @@ await G.ev(`const z=[...__vox.NET.pup.values()].find(e=>e.mt==='zombie');z.hurtT
 check('the guest’s hit hurts the host’s real zombie ('+hp0+' -> '+(await H.ev(`return __z.hp`))+')',(await H.ev(`return __z.hp`))===hp0-6);
 check('the guest has no mobs of its own while it is with the host',(await G.ev(`return __vox.entities.filter(e=>e.t==='mob'&&!e.dead&&!e.np&&!e.netp).length`))===0);
 const ghp0=await G.ev(`return __vox.P.hp`);
+await H.ev(`const p=__vox.NET.peers.get('g1').body,bx=Math.floor(p.x),by=Math.floor(p.y),bz=Math.floor(p.z);   /* headroom: a ledge above the body strands the zombie on it */
+  for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let dy=0;dy<=4;dy++)__vox.setBlock(bx+dx,by+dy,bz+dz,0);stp(2);`);await both(3);
 await H.ev(`__vox.GR.freezeMobs=false;const p=__vox.NET.peers.get('g1').body;__z.x=p.x+1.2;__z.z=p.z;__z.y=p.y;__z.atkT=0;`);
 for(let i=0;i<20;i++){await both(2,40);if((await G.ev(`return __vox.P.hp`))<ghp0)break;}
-check('the host’s zombie hunts the guest and its hit lands on the guest ('+ghp0+' -> '+(await G.ev(`return __vox.P.hp`))+')',(await G.ev(`return __vox.P.hp`))<ghp0);
+check('the host’s zombie hunts the guest and its hit lands on the guest ('+ghp0+' -> '+(await G.ev(`return __vox.P.hp`))+')',(await G.ev(`return __vox.P.hp`))<ghp0,
+  await H.ev(`const p=__vox.NET.peers.get('g1');return {z:[__z.x,__z.y,__z.z].map(v=>+v.toFixed(2)),zd:__z.dead,mode:__z.mode,b:[p.body.x,p.body.y,p.body.z].map(v=>+v.toFixed(2)),pvp:__vox.NET.pvp,god:__vox.GR.god,fm:__vox.GR.freezeMobs}`));
 await H.ev(`__z.hurtT=0;__vox.hurtMob(__z,999,0,0);stp(2);`);await both(4);
 check('a mob the host kills is gone for the guest',(await G.ev(`return [...__vox.NET.pup.values()].filter(e=>e.mt==='zombie'&&!e.dead).length`))===0);
 await G.ev(`__vox.P.hp=20;`);
@@ -190,6 +193,35 @@ check('the guest’s hit lands on the real hog ('+hh0+' -> '+(await H.ev(`return
 check('the guest runs no Purgatory cast of its own while the host is there',(await G.ev(`return __vox.entities.filter(e=>e.t==='mob'&&!e.dead&&!e.np&&!e.netp&&__vox.MOBT[e.mt]&&__vox.MOBT[e.mt].pmob).length`))===0);
 await shot(G,'guest_purgatory');
 await H.ev(`__hog.hurtT=0;__vox.hurtMob(__hog,999,0,0);__vox.GR.freezeMobs=false;__vox.setDim('over',...__ret);__vox.P.mode='s';stp(30);`);await G.ev(`__vox.P.mode='s';__vox.setDim('over',__vox.P.spawn[0],__vox.P.spawn[1],__vox.P.spawn[2]);stp(30);`);await both(20,80);
+
+/* ===== Malgorath together: the host's fight on the guest's screen ===== */
+{const tp=(C,r,th)=>C.ev(`const F=__vox.mgF(),x=1000.5+Math.cos(${th})*${r},z=1000.5+Math.sin(${th})*${r};__vox.forceChunksNear(x,z);__vox.forceChunksNear(1000,1000);
+    const P=__vox.P;P.x=Math.floor(x)+0.5;P.z=Math.floor(z)+0.5;P.y=F;P.vx=P.vy=P.vz=0;P.fallD=0;P.yaw=Math.atan2(-(1000.5-P.x),-(1000.5-P.z));P.pitch=0.35;stp(30);`);
+  await H.ev(`__vox.GR.god=true;`);await tp(H,15,Math.PI);await tp(G,13,Math.PI+0.5);await both(30,40);
+  await H.ev(`__vox.mgSkipTo(1);`);
+  for(let i=0;i<80;i++){await both(5,30);if(await H.ev(`return !__vox.getCUT().on&&__vox.mgInfo().live===1`))break;}
+  await both(40,40);
+  const gm=await G.ev(`const b=__vox.getMGF().boss;return {boss:!!b,np:b&&b.np,mgBoss:b&&b.mgBoss,hp:b&&b.hp,live:__vox.mgInfo().live,bar:(document.getElementById('mgbar')||{style:{}}).style.display,round:__vox.getMALG().round}`);
+  const hm=await H.ev(`const b=__vox.getMGF().boss;return {hp:b&&b.hp,nid:b&&b.nid,live:__vox.mgInfo().live}`);
+  check('Malgorath: the host’s live fight is on the guest’s screen (his body a puppet, his bar up, the same health)',gm.boss&&gm.np===1&&gm.mgBoss===1&&gm.live===1&&gm.bar==='block'&&Math.abs(gm.hp-hm.hp)<20,{gm,hm});
+  await shot(G,'guest_sees_malgorath');await shot(H,'host_fights_with_guest');
+  let tel=0;for(let i=0;i<60&&!tel;i++){await both(3,30);tel=await G.ev(`return __vox.mgTel().tel.length`);}
+  check('his drawings (the attacks he telegraphs) are drawn on the guest’s screen too',tel>0,{tel});
+  if(tel)await shot(G,'guest_sees_his_tell');
+  await H.ev(`__vox.getMGF().boss.hurtT=0;`);const bh0=await H.ev(`return __vox.getMGF().boss.hp`);
+  await G.ev(`const b=__vox.getMGF().boss;b.hurtT=0;window.HIT_HOW='melee';__vox.hurtMob(b,13,1,0);stp(1);`);await both(3,60);
+  const bh1=await H.ev(`return __vox.getMGF().boss.hp`);
+  check('the guest’s sword on his hide counts on the host’s Malgorath ('+bh0+' -> '+bh1+')',bh1<bh0,{bh0,bh1});
+  /* the end of the world, together */
+  await H.ev(`const p=__vox.NET.peers.get('g1').pose;__vox.startDisaster('tornado',p.x+12,p.z);stp(2);`);await both(12,60);
+  check('a tornado on the host is a twister on the guest’s screen',(await G.ev(`return __vox.entities.some(e=>e.t==='twister'&&e.fx===1&&!e.dead)`))===true);
+  await shot(G,'guest_sees_host_tornado');
+  await H.ev(`__vox.endDisaster(true);__vox.P.pitch=0;__vox.fireLaser();stp(1);`);await both(1,60);
+  check('the host’s laser eyes draw their beam on the guest’s screen',(await G.ev(`return __vox.entities.some(e=>e.t==='beam'&&!e.dead)`))===true);
+  await both(60,30);check('the guest’s copy of the tornado goes when the host’s does',(await G.ev(`return !__vox.entities.some(e=>e.t==='twister'&&!e.dead)`))===true);
+  await H.ev(`__vox.GR.god=false;const P=__vox.P;P.x=__ret[0];P.y=__ret[1]+0.5;P.z=__ret[2];P.vx=P.vy=P.vz=0;P.fallD=0;stp(40);`);
+  await G.ev(`const P=__vox.P;P.x=P.spawn[0];P.y=P.spawn[1]+0.5;P.z=P.spawn[2];P.vx=P.vy=P.vz=0;P.fallD=0;stp(40);`);await both(80,30);
+  check('both walk away: his fight goes dormant on the host, the mirror goes on the guest',(await G.ev(`return !__vox.getMGF().boss&&__vox.mgInfo().live===0`))===true);}
 
 /* ===== the guest leaves and comes back with its things ===== */
 await G.ev(`__vox.P.inv[3]={id:__vox.IT.STEAK,count:9};redrawHotbar();`);
